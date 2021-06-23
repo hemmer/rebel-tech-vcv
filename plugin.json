@@ -1,0 +1,23 @@
+{
+  "slug": "RebelTech",
+  "name": "RebelTech",
+  "version": "1.0.0",
+  "license": "GPL-3.0-or-later",
+  "brand": "RebelTech",
+  "author": "Ewan Hemingway",
+  "authorEmail": "",
+  "authorUrl": "",
+  "pluginUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "",
+  "donateUrl": "",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "Stoicheia",
+      "name": "Stoicheia",
+      "description": "",
+      "tags": []
+    }
+  ]
+}
