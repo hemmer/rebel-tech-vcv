@@ -9,3 +9,4 @@ extern Plugin* pluginInstance;
 
 // Declare each Model, defined in each module source file
 extern Model* modelStoicheia;
+extern Model* modelTonic;

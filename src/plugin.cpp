@@ -9,4 +9,5 @@ void init(Plugin* p) {
 
 	// Add modules here
 	p->addModel(modelStoicheia);
+	p->addModel(modelTonic);
 }
