@@ -1,5 +1,5 @@
 #include "plugin.hpp"
-
+#include "Common.hpp"
 
 struct Tonic : Module {
 	enum ParamIds {
@@ -74,7 +74,7 @@ struct TonicWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(15.119, 16.82)), module, Tonic::SCALE_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(15.119, 16.82)), module, Tonic::SCALE_PARAM));
 		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 32.222)), module, Tonic::BUTTON + 0));
 		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 44.928)), module, Tonic::BUTTON + 1));
 		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 57.634)), module, Tonic::BUTTON + 2));
@@ -82,15 +82,15 @@ struct TonicWidget : ModuleWidget {
 		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 83.045)), module, Tonic::BUTTON + 4));
 		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 95.75)), module, Tonic::BUTTON + 5));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.938, 32.222)), module, Tonic::GATE_INPUT + 0));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.938, 44.928)), module, Tonic::GATE_INPUT + 1));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.938, 57.634)), module, Tonic::GATE_INPUT + 2));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.938, 70.339)), module, Tonic::GATE_INPUT + 3));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.938, 83.045)), module, Tonic::GATE_INPUT + 4));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.938, 95.75)), module, Tonic::GATE_INPUT + 5));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 32.222)), module, Tonic::GATE_INPUT + 0));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 44.928)), module, Tonic::GATE_INPUT + 1));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 57.634)), module, Tonic::GATE_INPUT + 2));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 70.339)), module, Tonic::GATE_INPUT + 3));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 83.045)), module, Tonic::GATE_INPUT + 4));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 95.75)), module, Tonic::GATE_INPUT + 5));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.938, 108.456)), module, Tonic::OUT_A_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(22.641, 108.456)), module, Tonic::OUT_B_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(7.938, 108.456)), module, Tonic::OUT_A_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(22.641, 108.456)), module, Tonic::OUT_B_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 32.222)), module, Tonic::LED + 0));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 44.928)), module, Tonic::LED + 1));

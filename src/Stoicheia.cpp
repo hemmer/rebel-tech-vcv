@@ -1,13 +1,9 @@
+
 #include "plugin.hpp"
 #include "Sequence.h"
+#include "Common.hpp"
 
-struct Davies1900hWhiteKnobSnap : Davies1900hWhiteKnob {
-	Davies1900hWhiteKnobSnap() {
-		snap = true;
-		minAngle = -0.75 * M_PI;
-		maxAngle = 0.75 * M_PI;
-	}
-};
+
 
 
 struct Stoicheia : Module {
@@ -41,18 +37,6 @@ struct Stoicheia : Module {
 		NUM_LIGHTS
 	};
 
-	enum SequenceMode {
-		LATCHED,
-		MUTE,
-		NORMAL
-	};
-
-	struct SequenceParams {
-		int length;
-		int fill;
-		int start;
-		SequenceMode mode;
-	};
 
 	enum ABMode {
 		INDEPENDENT,
@@ -65,12 +49,12 @@ struct Stoicheia : Module {
 			if (module != nullptr) {
 				if (paramId == DENSITY_A_PARAM) {
 					int lengthA = module->params[LENGTH_A_PARAM].getValue();
-					int fillValue = std::round(getValue() * lengthA);
+					int fillValue = std::round(getValue() * (lengthA - 1));
 					return std::to_string(fillValue);
 				}
 				else if (paramId == DENSITY_B_PARAM) {
 					int lengthB = module->params[LENGTH_B_PARAM].getValue();
-					int fillValue = std::round(getValue() * lengthB);
+					int fillValue = 1 + std::round(getValue() * (lengthB - 1));
 					return std::to_string(fillValue);
 				}
 				else {
@@ -83,16 +67,6 @@ struct Stoicheia : Module {
 		}
 	};
 
-	struct ModeParam : ParamQuantity {
-		std::string getDisplayValueString() override {
-			switch (static_cast<SequenceMode>(getValue())) {
-				case MUTE: return "Mute";
-				case LATCHED: return "Latched";
-				case NORMAL: return "Normal";
-				default: assert(false);
-			}
-		}
-	};
 
 	struct ABModeParam : ParamQuantity {
 		std::string getDisplayValueString() override {
@@ -109,10 +83,10 @@ struct Stoicheia : Module {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(START_A_PARAM, 0.f, 15.f, 0.f, "Offset A");
 		configParam(START_B_PARAM, 0.f, 15.f, 0.f, "Offset B");
-		configParam(LENGTH_A_PARAM, 1.f, 16.f, 0.f, "Length A");
-		configParam(LENGTH_B_PARAM, 1.f, 16.f, 0.f, "Length B");
-		configParam<FillParam>(DENSITY_A_PARAM, 0.f, 1.f, 0.f, "Fill density A");
-		configParam<FillParam>(DENSITY_B_PARAM, 0.f, 1.f, 0.f, "Fill density B");
+		configParam(LENGTH_A_PARAM, 1.f, 16.f, 1.f, "Length A");
+		configParam(LENGTH_B_PARAM, 1.f, 16.f, 1.f, "Length B");
+		configParam<FillParam>(DENSITY_A_PARAM, 0.f, 1.f, 0.5f, "Fill density A");
+		configParam<FillParam>(DENSITY_B_PARAM, 0.f, 1.f, 0.5f, "Fill density B");
 		configParam<ABModeParam>(AB_MODE, INDEPENDENT, ALTERNATING, INDEPENDENT, "Sequence mode");
 		configParam<ModeParam>(MODE_A_PARAM, 0.f, NORMAL, NORMAL, "Mode A");
 		configParam<ModeParam>(MODE_B_PARAM, 0.f, NORMAL, NORMAL, "Mode B");
@@ -143,7 +117,7 @@ struct Stoicheia : Module {
 
 		// update params of sequence A (if changed)
 		currentA.length = params[LENGTH_A_PARAM].getValue();
-		currentA.fill = std::round(currentA.length * params[DENSITY_A_PARAM].getValue());
+		currentA.fill = 1 + std::round((currentA.length - 1) * params[DENSITY_A_PARAM].getValue());
 		currentA.start = params[START_A_PARAM].getValue();
 		currentA.mode = static_cast<SequenceMode>(params[MODE_A_PARAM].getValue());
 		if (currentA.length != oldA.length || currentA.fill != oldA.fill) {
@@ -154,7 +128,7 @@ struct Stoicheia : Module {
 		}
 		// update params of sequence B (if changed)
 		currentB.length = params[LENGTH_B_PARAM].getValue();
-		currentB.fill = std::round(currentB.length * params[DENSITY_B_PARAM].getValue());
+		currentB.fill = 1 + std::round((currentB.length - 1) * params[DENSITY_B_PARAM].getValue());
 		currentB.start = params[START_B_PARAM].getValue();
 		currentB.mode = static_cast<SequenceMode>(params[MODE_B_PARAM].getValue());
 		if (currentB.length != oldB.length || currentB.fill != oldB.fill) {
@@ -235,7 +209,7 @@ struct Stoicheia : Module {
 		}
 
 		outputs[OUT_A_OUTPUT].setVoltage(outA);
-		lights[A_LIGHT].setBrightness(outA / 10.f);
+		lights[A_LIGHT].setBrightness(outA / 10.f);		
 		oldA = currentA;
 
 		outputs[OUT_B_OUTPUT].setVoltage(outB);
@@ -267,12 +241,12 @@ struct StoicheiaWidget : ModuleWidget {
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(11.76, 96.351)), module, Stoicheia::MODE_A_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.885, 97.152)), module, Stoicheia::MODE_B_PARAM));
 
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(25.391, 96.351)), module, Stoicheia::RESET_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(5.746, 108.712)), module, Stoicheia::IN_A_INPUT));
-		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(43.632, 109.246)), module, Stoicheia::IN_B_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.391, 96.351)), module, Stoicheia::RESET_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(5.746, 108.712)), module, Stoicheia::IN_A_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(43.632, 109.246)), module, Stoicheia::IN_B_INPUT));
 
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(18.843, 108.511)), module, Stoicheia::OUT_A_OUTPUT));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(31.906, 108.731)), module, Stoicheia::OUT_B_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(18.843, 108.511)), module, Stoicheia::OUT_A_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(31.906, 108.731)), module, Stoicheia::OUT_B_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(25.391, 70.515)), module, Stoicheia::A_AND_B_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(12.478, 83.054)), module, Stoicheia::A_LIGHT));
