@@ -221,36 +221,37 @@ struct Stoicheia : Module {
 };
 
 
+
 struct StoicheiaWidget : ModuleWidget {
 	StoicheiaWidget(Stoicheia* module) {
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Stoicheia.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/Stoicheia.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(11.117, 25.644)), module, Stoicheia::START_A_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(38.249, 25.644)), module, Stoicheia::START_B_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(11.117, 45.374)), module, Stoicheia::LENGTH_A_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(38.249, 45.374)), module, Stoicheia::LENGTH_B_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(11.117, 65.103)), module, Stoicheia::DENSITY_A_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(38.249, 65.103)), module, Stoicheia::DENSITY_B_PARAM));
-		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.391, 83.054)), module, Stoicheia::AB_MODE));
-		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(11.76, 96.351)), module, Stoicheia::MODE_A_PARAM));
-		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.885, 97.152)), module, Stoicheia::MODE_B_PARAM));
-
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.391, 96.351)), module, Stoicheia::RESET_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(5.746, 108.712)), module, Stoicheia::IN_A_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(43.632, 109.246)), module, Stoicheia::IN_B_INPUT));
-
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(18.843, 108.511)), module, Stoicheia::OUT_A_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(31.906, 108.731)), module, Stoicheia::OUT_B_OUTPUT));
-
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(25.391, 70.515)), module, Stoicheia::A_AND_B_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(12.478, 83.054)), module, Stoicheia::A_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(37.819, 83.054)), module, Stoicheia::B_LIGHT));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.569, 26.174)), module, Stoicheia::START_A_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(37.971, 26.174)), module, Stoicheia::START_B_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.569, 45.374)), module, Stoicheia::LENGTH_A_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(37.971, 45.374)), module, Stoicheia::LENGTH_B_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.569, 64.574)), module, Stoicheia::DENSITY_A_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(37.971, 64.574)), module, Stoicheia::DENSITY_B_PARAM));
+		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.275, 83.326)), module, Stoicheia::AB_MODE));
+		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(12.347, 96.026)), module, Stoicheia::MODE_A_PARAM));
+		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.976, 96.026)), module, Stoicheia::MODE_B_PARAM));
+		
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.275, 96.026)), module, Stoicheia::RESET_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(6.224, 108.712)), module, Stoicheia::IN_A_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(44.326, 108.712)), module, Stoicheia::IN_B_INPUT));
+		
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(18.925, 108.712)), module, Stoicheia::OUT_A_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(31.625, 108.712)), module, Stoicheia::OUT_B_OUTPUT));
+		
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(25.275, 70.625)), module, Stoicheia::A_AND_B_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(12.574, 83.308)), module, Stoicheia::A_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(37.976, 83.326)), module, Stoicheia::B_LIGHT));
 	}
 };
 
