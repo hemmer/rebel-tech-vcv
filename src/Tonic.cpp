@@ -67,37 +67,35 @@ struct Tonic : Module {
 struct TonicWidget : ModuleWidget {
 	TonicWidget(Tonic* module) {
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Tonic.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/Tonic.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(15.119, 16.82)), module, Tonic::SCALE_PARAM));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 32.222)), module, Tonic::BUTTON + 0));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 44.928)), module, Tonic::BUTTON + 1));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 57.634)), module, Tonic::BUTTON + 2));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 70.339)), module, Tonic::BUTTON + 3));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 83.045)), module, Tonic::BUTTON + 4));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.641, 95.75)), module, Tonic::BUTTON + 5));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(15.02, 18.431)), module, Tonic::SCALE_PARAM));
+		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 32.525)), module, Tonic::BUTTON + 0));
+		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 45.225)), module, Tonic::BUTTON + 1));
+		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 57.925)), module, Tonic::BUTTON + 2));
+		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 70.625)), module, Tonic::BUTTON + 3));
+		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 83.325)), module, Tonic::BUTTON + 4));
+		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 96.025)), module, Tonic::BUTTON + 5));
 
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 32.222)), module, Tonic::GATE_INPUT + 0));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 44.928)), module, Tonic::GATE_INPUT + 1));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 57.634)), module, Tonic::GATE_INPUT + 2));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 70.339)), module, Tonic::GATE_INPUT + 3));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 83.045)), module, Tonic::GATE_INPUT + 4));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.938, 95.75)), module, Tonic::GATE_INPUT + 5));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 32.525)), module, Tonic::GATE_INPUT + 0));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 45.225)), module, Tonic::GATE_INPUT + 1));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 57.925)), module, Tonic::GATE_INPUT + 2));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 70.625)), module, Tonic::GATE_INPUT + 3));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 83.325)), module, Tonic::GATE_INPUT + 4));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 96.025)), module, Tonic::GATE_INPUT + 5));
 
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(7.938, 108.456)), module, Tonic::OUT_A_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(22.641, 108.456)), module, Tonic::OUT_B_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(7.451, 108.725)), module, Tonic::OUT_A_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(22.645, 108.725)), module, Tonic::OUT_B_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 32.222)), module, Tonic::LED + 0));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 44.928)), module, Tonic::LED + 1));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 57.634)), module, Tonic::LED + 2));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 70.339)), module, Tonic::LED + 3));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 83.045)), module, Tonic::LED + 4));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.119, 95.75)), module, Tonic::LED + 5));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 32.493)), module, Tonic::LED + 0));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 45.196)), module, Tonic::LED + 1));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 57.899)), module, Tonic::LED + 2));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 70.602)), module, Tonic::LED + 3));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 83.304)), module, Tonic::LED + 4));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 96.007)), module, Tonic::LED + 5));
 	}
 };
 
