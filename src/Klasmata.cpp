@@ -114,29 +114,29 @@ struct Klasmata : Module {
 struct KlasmataWidget : ModuleWidget {
 	KlasmataWidget(Klasmata* module) {
 		setModule(module);
-		setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/Klasmata.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/Klasmata.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(11.359, 24.259)), module, Klasmata::OFFSET_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(11.359, 44.12)), module, Klasmata::LENGTH_PARAM));
-		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(32.58, 44.901)), module, Klasmata::SWITCH_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(11.359, 63.98)), module, Klasmata::DENSITY_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(11.359, 83.84)), module, Klasmata::LENGTH_ATTEN_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(11.359, 103.701)), module, Klasmata::DENSITY_ATTEN_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.55, 26.256)), module, Klasmata::OFFSET_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.55, 45.306)), module, Klasmata::LENGTH_PARAM));
+		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(32.875, 45.225)), module, Klasmata::SWITCH_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.55, 64.356)), module, Klasmata::DENSITY_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.55, 83.406)), module, Klasmata::LENGTH_ATTEN_PARAM));
+		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.55, 102.456)), module, Klasmata::DENSITY_ATTEN_PARAM));
 
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.58, 58.053)), module, Klasmata::RESET_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.58, 83.691)), module, Klasmata::LENGTH_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.58, 96.51)), module, Klasmata::DENSITY_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.58, 109.329)), module, Klasmata::CLOCK_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 57.925)), module, Klasmata::RESET_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 83.325)), module, Klasmata::LENGTH_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 96.025)), module, Klasmata::DENSITY_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 108.725)), module, Klasmata::CLOCK_INPUT));
 
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(32.58, 70.872)), module, Klasmata::OUT_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(32.875, 70.625)), module, Klasmata::OUT_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(22.317, 70.626)), module, Klasmata::OUT_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(23.052, 109.18)), module, Klasmata::IN_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(22.715, 70.625)), module, Klasmata::OUT_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(22.715, 108.725)), module, Klasmata::IN_LIGHT));
 	}
 };
 

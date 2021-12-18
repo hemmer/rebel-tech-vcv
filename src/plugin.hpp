@@ -12,3 +12,4 @@ extern Model* modelStoicheia;
 extern Model* modelTonic;
 extern Model* modelKlasmata;
 extern Model* modelCLK;
+extern Model* modelLogoi;

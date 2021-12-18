@@ -36,6 +36,12 @@
       "name": "CLK",
       "description": "",
       "tags": []
+    },
+    {
+      "slug": "Logoi",
+      "name": "Logoi",
+      "description": "",
+      "tags": []
     }
   ]
 }
