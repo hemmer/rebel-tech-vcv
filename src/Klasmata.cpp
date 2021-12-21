@@ -1,5 +1,4 @@
 #include "plugin.hpp"
-#include "Common.hpp"
 #include "Sequence.h"
 
 struct Klasmata : Module {
@@ -58,7 +57,7 @@ struct Klasmata : Module {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(OFFSET_PARAM, 0.f, 31.f, 0.f, "Offset");
 		configParam(LENGTH_PARAM, 1.f, 32.f, 1.f, "Length");
-		configParam<ModeParam>(SWITCH_PARAM, 0.f, NORMAL, NORMAL, "Mode");
+		configSwitch(SWITCH_PARAM, 0.f, NORMAL, NORMAL, "Mode", {"Latched", "Mute", "Normal"});
 		configParam<FillParam>(DENSITY_PARAM, 0.f, 1.f, 0.5f, "");
 		configParam(LENGTH_ATTEN_PARAM, 0.f, 1.f, 0.f, "");
 		configParam(DENSITY_ATTEN_PARAM, 0.f, 1.f, 0.f, "");

@@ -1,5 +1,4 @@
 #include "plugin.hpp"
-#include "Common.hpp"
 
 struct Tonic : Module {
 	enum ParamIds {
@@ -63,6 +62,13 @@ struct Tonic : Module {
 	}
 };
 
+struct TonicButton : app::SvgSwitch {
+	TonicButton() {
+		momentary = true;
+		addFrame(Svg::load(asset::plugin(pluginInstance, "res/TonicButton_0.svg")));
+		addFrame(Svg::load(asset::plugin(pluginInstance, "res/TonicButton_1.svg")));
+	}
+};
 
 struct TonicWidget : ModuleWidget {
 	TonicWidget(Tonic* module) {
@@ -73,12 +79,12 @@ struct TonicWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
 		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(15.02, 18.431)), module, Tonic::SCALE_PARAM));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 32.525)), module, Tonic::BUTTON + 0));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 45.225)), module, Tonic::BUTTON + 1));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 57.925)), module, Tonic::BUTTON + 2));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 70.625)), module, Tonic::BUTTON + 3));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 83.325)), module, Tonic::BUTTON + 4));
-		addParam(createParamCentered<BefacoPush>(mm2px(Vec(22.645, 96.025)), module, Tonic::BUTTON + 5));
+		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 32.525)), module, Tonic::BUTTON + 0));
+		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 45.225)), module, Tonic::BUTTON + 1));
+		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 57.925)), module, Tonic::BUTTON + 2));
+		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 70.625)), module, Tonic::BUTTON + 3));
+		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 83.325)), module, Tonic::BUTTON + 4));
+		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 96.025)), module, Tonic::BUTTON + 5));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 32.525)), module, Tonic::GATE_INPUT + 0));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 45.225)), module, Tonic::GATE_INPUT + 1));

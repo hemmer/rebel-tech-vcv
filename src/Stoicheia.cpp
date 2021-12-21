@@ -1,10 +1,6 @@
 
 #include "plugin.hpp"
 #include "Sequence.h"
-#include "Common.hpp"
-
-
-
 
 struct Stoicheia : Module {
 	enum ParamIds {
@@ -88,8 +84,8 @@ struct Stoicheia : Module {
 		configParam<FillParam>(DENSITY_A_PARAM, 0.f, 1.f, 0.5f, "Fill density A");
 		configParam<FillParam>(DENSITY_B_PARAM, 0.f, 1.f, 0.5f, "Fill density B");
 		configParam<ABModeParam>(AB_MODE, INDEPENDENT, ALTERNATING, INDEPENDENT, "Sequence mode");
-		configParam<ModeParam>(MODE_A_PARAM, 0.f, NORMAL, NORMAL, "Mode A");
-		configParam<ModeParam>(MODE_B_PARAM, 0.f, NORMAL, NORMAL, "Mode B");
+		configSwitch(MODE_A_PARAM, 0.f, NORMAL, NORMAL, "Mode A", {"Latched", "Mute", "Normal"});
+		configSwitch(MODE_B_PARAM, 0.f, NORMAL, NORMAL, "Mode B", {"Latched", "Mute", "Normal"});
 
 		seq[0].offset = 0;
 		seq[0].calculate(12, 8);
@@ -209,7 +205,7 @@ struct Stoicheia : Module {
 		}
 
 		outputs[OUT_A_OUTPUT].setVoltage(outA);
-		lights[A_LIGHT].setBrightness(outA / 10.f);		
+		lights[A_LIGHT].setBrightness(outA / 10.f);
 		oldA = currentA;
 
 		outputs[OUT_B_OUTPUT].setVoltage(outB);
@@ -241,14 +237,14 @@ struct StoicheiaWidget : ModuleWidget {
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.275, 83.326)), module, Stoicheia::AB_MODE));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(12.347, 96.026)), module, Stoicheia::MODE_A_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.976, 96.026)), module, Stoicheia::MODE_B_PARAM));
-		
+
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.275, 96.026)), module, Stoicheia::RESET_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(6.224, 108.712)), module, Stoicheia::IN_A_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(44.326, 108.712)), module, Stoicheia::IN_B_INPUT));
-		
+
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(18.925, 108.712)), module, Stoicheia::OUT_A_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(31.625, 108.712)), module, Stoicheia::OUT_B_OUTPUT));
-		
+
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(25.275, 70.625)), module, Stoicheia::A_AND_B_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(12.574, 83.308)), module, Stoicheia::A_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(37.976, 83.326)), module, Stoicheia::B_LIGHT));
