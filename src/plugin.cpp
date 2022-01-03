@@ -13,4 +13,5 @@ void init(Plugin* p) {
 	p->addModel(modelKlasmata);
 	p->addModel(modelCLK);
 	p->addModel(modelLogoi);
+	p->addModel(modelPhoreo);
 }

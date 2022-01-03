@@ -188,14 +188,18 @@ struct Logoi : Module {
 		OUTPUTS_LEN
 	};
 	enum LightId {
-		PATH2680_41_LIGHT,
-		PATH2680_6_LIGHT,
-		PATH2680_41_2_LIGHT,
+		COMBINED_LIGHT,
+		DIVIDED_LIGHT,
+		ADDITION_LIGHT,
 		LIGHTS_LEN
 	};
 
 	dsp::SchmittTrigger riseDetector[3];
 	dsp::SchmittTrigger fallDetector[3];
+
+	dsp::PulseGenerator pulseGenerator;
+	dsp::Timer delayTimer;
+	bool delaying = false;
 
 	ClockCounter counter;
 	ClockDivider divider;
@@ -237,11 +241,11 @@ struct Logoi : Module {
 
 	void process(const ProcessArgs& args) override {
 
-		divider.value = std::round(params[DIV_PARAM].getValue() - 1);
+		divider.value = params[DIV_PARAM].getValue() - 1;
 
 		// can get a normalled copy of right half clock if nothing is connected to left clock
-		const float normalledClockLeft = inputs[DIVISION_CLOCK_INPUT].getNormalVoltage(inputs[ADDITION_CLOCK_INPUT].getVoltage()));
-		if (riseDetector[0].process(normalledClockLeft) {
+		const float normalledClockLeft = inputs[DIVISION_CLOCK_INPUT].getNormalVoltage(inputs[ADDITION_CLOCK_INPUT].getVoltage());
+		if (riseDetector[0].process(normalledClockLeft)) {
 			divider.rise();
 		}
 		else if (fallDetector[0].process(normalledClockLeft)) {
@@ -249,25 +253,55 @@ struct Logoi : Module {
 		}
 		outputs[DIVISION_OUTPUT].setVoltage(10.f * !divider.isOff());
 
-		
+
 		// can get a normalled copy of left half clock if nothing is connected to right clock
-		const float normalledClockRight = inputs[ADDITION_CLOCK_INPUT].getNormalVoltage(inputs[DIVISION_CLOCK_INPUT].getVoltage()));
-		switch (params[MODE_PARAM].getValue()) {
+		const float normalledClockRight = inputs[ADDITION_CLOCK_INPUT].getNormalVoltage(inputs[DIVISION_CLOCK_INPUT].getVoltage());
+		switch ((int) params[MODE_PARAM].getValue()) {
 			case DIVIDE_MODE: {
+
+				counter.value = std::round(params[PLUS_PARAM].getValue() * 32.f);
+
+				if (riseDetector[1].process(normalledClockRight)) {
+					counter.rise();
+				}
+				else if (fallDetector[1].process(normalledClockRight)) {
+					counter.fall();
+				}
+				outputs[ADDITION_OUTPUT].setVoltage(10.f * !counter.isOff());
+
+				break;
+			}
+			case DELAY_MODE: {
+
+				// between 0 and 1 seconds
+				const float delayTimeSeconds = params[PLUS_PARAM].getValue();
+
+				if (riseDetector[1].process(normalledClockRight)) {
+					delayTimer.reset();
+					delaying = true;
+				}
+
+				if (delaying && delayTimer.process(args.sampleTime) > delayTimeSeconds) {
+					delaying = false;
+					pulseGenerator.trigger();
+				}
+
+				outputs[ADDITION_OUTPUT].setVoltage(10.f * pulseGenerator.process(args.sampleTime));
 
 				break;
 			}
 		}
 
-		
-		if (riseDetector[0].process(normalledClockLeft) {
-			divider.rise();
-		}
-		else if (fallDetector[0].process(normalledClockLeft)) {
-			divider.fall();
-		}
-		outputs[DIVISION_OUTPUT].setVoltage(10.f * !divider.isOff());
+		const bool leftState = outputs[DIVISION_OUTPUT].getVoltage();
+		const bool rightState = outputs[ADDITION_OUTPUT].getVoltage();
+		// binary OR (this isn't what hardware does, more investigation needed!)
 
+		const bool combinedState = leftState + rightState;
+		outputs[COMBINED_OUTPUT].setVoltage(10.f * combinedState);
+		
+		lights[DIVIDED_LIGHT].setBrightnessSmooth(leftState, args.sampleTime);
+		lights[COMBINED_LIGHT].setBrightnessSmooth(combinedState, args.sampleTime);
+		lights[ADDITION_LIGHT].setBrightnessSmooth(rightState, args.sampleTime);
 	}
 };
 
@@ -298,9 +332,9 @@ struct LogoiWidget : ModuleWidget {
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(37.925, 95.88)), module, Logoi::ADDITION_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(25.225, 108.58)), module, Logoi::COMBINED_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(25.225, 57.78)), module, Logoi::PATH2680_41_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(12.525, 70.48)), module, Logoi::PATH2680_6_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(37.975, 70.625)), module, Logoi::PATH2680_41_2_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(25.225, 57.78)), module, Logoi::COMBINED_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(12.525, 70.48)), module, Logoi::DIVIDED_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(37.975, 70.625)), module, Logoi::ADDITION_LIGHT));
 	}
 };
 

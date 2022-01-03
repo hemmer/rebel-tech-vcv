@@ -13,6 +13,7 @@ extern Model* modelTonic;
 extern Model* modelKlasmata;
 extern Model* modelCLK;
 extern Model* modelLogoi;
+extern Model* modelPhoreo;
 
 struct BefacoOutputPort : app::SvgPort {
 	BefacoOutputPort() {
