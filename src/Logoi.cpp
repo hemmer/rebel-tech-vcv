@@ -1,6 +1,6 @@
 #include "plugin.hpp"
 
-
+// derived from https://github.com/pingdynasty/ClockDelay/blob/master/ClockDelay.cpp
 
 class ClockCounter {
 public:
