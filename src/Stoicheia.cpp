@@ -77,10 +77,15 @@ struct Stoicheia : Module {
 
 	Stoicheia() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(START_A_PARAM, 0.f, 15.f, 0.f, "Offset A");
-		configParam(START_B_PARAM, 0.f, 15.f, 0.f, "Offset B");
-		configParam(LENGTH_A_PARAM, 1.f, 16.f, 1.f, "Length A");
-		configParam(LENGTH_B_PARAM, 1.f, 16.f, 1.f, "Length B");
+		auto startA = configParam(START_A_PARAM, 0.f, 15.f, 0.f, "Offset A");
+		startA->snapEnabled = true;
+		auto startB = configParam(START_B_PARAM, 0.f, 15.f, 0.f, "Offset B");
+		startB->snapEnabled = true;
+		auto lengthA = configParam(LENGTH_A_PARAM, 1.f, 16.f, 1.f, "Length A");
+		lengthA->snapEnabled = true;
+		auto lengthB = configParam(LENGTH_B_PARAM, 1.f, 16.f, 1.f, "Length B");
+		lengthB->snapEnabled = true;
+
 		configParam<FillParam>(DENSITY_A_PARAM, 0.f, 1.f, 0.5f, "Fill density A");
 		configParam<FillParam>(DENSITY_B_PARAM, 0.f, 1.f, 0.5f, "Fill density B");
 		configParam<ABModeParam>(AB_MODE, INDEPENDENT, ALTERNATING, INDEPENDENT, "Sequence mode");
@@ -228,12 +233,12 @@ struct StoicheiaWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.569, 26.174)), module, Stoicheia::START_A_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(37.971, 26.174)), module, Stoicheia::START_B_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.569, 45.374)), module, Stoicheia::LENGTH_A_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(37.971, 45.374)), module, Stoicheia::LENGTH_B_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.569, 64.574)), module, Stoicheia::DENSITY_A_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(37.971, 64.574)), module, Stoicheia::DENSITY_B_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.569, 26.174)), module, Stoicheia::START_A_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.971, 26.174)), module, Stoicheia::START_B_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.569, 45.374)), module, Stoicheia::LENGTH_A_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.971, 45.374)), module, Stoicheia::LENGTH_B_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.569, 64.574)), module, Stoicheia::DENSITY_A_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.971, 64.574)), module, Stoicheia::DENSITY_B_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.275, 83.326)), module, Stoicheia::AB_MODE));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(12.347, 96.026)), module, Stoicheia::MODE_A_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.976, 96.026)), module, Stoicheia::MODE_B_PARAM));

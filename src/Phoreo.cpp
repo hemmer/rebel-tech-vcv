@@ -275,12 +275,12 @@ struct PhoreoWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<SynthTechAlco>(mm2px(Vec(12.583, 26.247)), module, Phoreo::MOD_PARAM));
-		addParam(createParamCentered<SynthTechAlco>(mm2px(Vec(37.983, 26.247)), module, Phoreo::MOD_CV_PARAM));
-		addParam(createParamCentered<SynthTechAlco>(mm2px(Vec(12.583, 45.296)), module, Phoreo::MUL_PARAM));
-		addParam(createParamCentered<SynthTechAlco>(mm2px(Vec(37.983, 45.296)), module, Phoreo::MUL_CV_PARAM));
-		addParam(createParamCentered<SynthTechAlco>(mm2px(Vec(12.583, 64.346)), module, Phoreo::REP_PARAM));
-		addParam(createParamCentered<SynthTechAlco>(mm2px(Vec(37.983, 64.346)), module, Phoreo::REP_CV_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.583, 26.247)), module, Phoreo::MOD_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.983, 26.247)), module, Phoreo::MOD_CV_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.583, 45.296)), module, Phoreo::MUL_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.983, 45.296)), module, Phoreo::MUL_CV_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.583, 64.346)), module, Phoreo::REP_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.983, 64.346)), module, Phoreo::REP_CV_PARAM));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.575, 83.325)), module, Phoreo::MOD_TRIG_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.275, 83.325)), module, Phoreo::MOD_CV_INPUT));

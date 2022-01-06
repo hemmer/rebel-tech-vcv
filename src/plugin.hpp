@@ -27,6 +27,20 @@ struct BefacoInputPort : app::SvgPort {
 	}
 };
 
+struct RebelTechPot : app::SvgKnob {
+	widget::SvgWidget* bg;
+
+	RebelTechPot() {
+		minAngle = -0.82 * M_PI;
+		maxAngle = 0.82 * M_PI;
+
+		bg = new widget::SvgWidget;
+		fb->addChildBelow(bg, tw);
+
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/Pot.svg")));
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/Pot_bg.svg")));
+	}
+};
 
 enum SequenceMode {
 	LATCHED,
