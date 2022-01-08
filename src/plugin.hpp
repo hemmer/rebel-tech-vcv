@@ -42,18 +42,7 @@ struct RebelTechPot : app::SvgKnob {
 	}
 };
 
-enum SequenceMode {
-	LATCHED,
-	MUTE,
-	NORMAL
-};
 
-struct SequenceParams {
-	int length;
-	int fill;
-	int start;
-	SequenceMode mode;
-};
 
 struct Davies1900hWhiteKnobSnap : Davies1900hWhiteKnob {
 	Davies1900hWhiteKnobSnap() {

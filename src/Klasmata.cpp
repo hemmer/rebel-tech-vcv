@@ -7,14 +7,14 @@ struct Klasmata : Module {
 		LENGTH_PARAM,
 		SWITCH_PARAM,
 		DENSITY_PARAM,
-		LENGTH_ATTEN_PARAM,
-		DENSITY_ATTEN_PARAM,
+		LENGTH_CV_PARAM,
+		DENSITY_CV_PARAM,
 		NUM_PARAMS
 	};
 	enum InputIds {
 		RESET_INPUT,
-		LENGTH_INPUT,
-		DENSITY_INPUT,
+		LENGTH_CV_INPUT,
+		DENSITY_CV_INPUT,
 		CLOCK_INPUT,
 		NUM_INPUTS
 	};
@@ -47,20 +47,46 @@ struct Klasmata : Module {
 		}
 	};
 
-	Sequence<uint16_t> seq;
+	enum SequenceMode {
+		LATCHED,
+		NORMAL,
+		MUTE
+	};
+
+	struct SequenceParams {
+		int length;
+		int fill;
+		int start;
+		SequenceMode mode;
+	};
+
+	// uint32_t for 32 steps
+	Sequence<uint32_t> seq;
 	SequenceParams oldParams, currentParams;
 	dsp::SchmittTrigger clockTrigger;
 	dsp::SchmittTrigger resetTrigger;
-	bool state = false;
+	bool state, stateAlternating = false;
 
 	Klasmata() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(OFFSET_PARAM, 0.f, 31.f, 0.f, "Offset");
-		configParam(LENGTH_PARAM, 1.f, 32.f, 1.f, "Length");
-		configSwitch(SWITCH_PARAM, 0.f, NORMAL, NORMAL, "Mode", {"Latched", "Mute", "Normal"});
-		configParam<FillParam>(DENSITY_PARAM, 0.f, 1.f, 0.5f, "");
-		configParam(LENGTH_ATTEN_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(DENSITY_ATTEN_PARAM, 0.f, 1.f, 0.f, "");
+		auto offsetParam = configParam(OFFSET_PARAM, 0.f, 31.f, 0.f, "Offset");
+		offsetParam->snapEnabled = true;
+		auto lengthParam = configParam(LENGTH_PARAM, 1.f, 32.f, 1.f, "Length");
+		lengthParam->snapEnabled = true;
+
+		configSwitch(SWITCH_PARAM, LATCHED, MUTE, NORMAL, "Mode", {"Latched", "Normal", "Mute"});
+		configParam<FillParam>(DENSITY_PARAM, 0.f, 1.f, 0.5f, "Fill Density");
+		configParam(LENGTH_CV_PARAM, 0.f, 1.f, 0.f, "Length CV Attenution");
+		configParam(DENSITY_CV_PARAM, 0.f, 1.f, 0.f, "Density CV Attenution");
+
+		configInput(RESET_INPUT, "Reset");
+		configInput(LENGTH_CV_INPUT, "Length CV");
+		configInput(DENSITY_CV_INPUT, "Density CV");
+		configInput(CLOCK_INPUT, "Clock");
+		configOutput(OUT_OUTPUT, "Euclidean sequence");
+
+		configLight(IN_LIGHT, "Clock input");
+		configLight(OUT_LIGHT, "Sequence");
 
 		seq.offset = 0;
 		seq.calculate(12, 8);
@@ -72,12 +98,25 @@ struct Klasmata : Module {
 			seq.reset();
 		}
 
-		// update params of sequence (if changed)
-		currentParams.length = params[LENGTH_PARAM].getValue();
-		currentParams.fill = 1 + std::round((currentParams.length - 1) * params[DENSITY_PARAM].getValue());
-		currentParams.start = params[OFFSET_PARAM].getValue();
-		currentParams.mode = static_cast<SequenceMode>(params[SWITCH_PARAM].getValue());
+		// process knobs and CV
+		{
+			// value between -1 and 1
+			const float lengthCV = clamp(inputs[LENGTH_CV_INPUT].getVoltage() / 10.f, -1.f, +1.f) * params[LENGTH_CV_PARAM].getValue();
+			// actual length is knob value plus CV (adds)
+			currentParams.length = std::round(clamp(params[LENGTH_PARAM].getValue() + lengthCV * 31, 1.f, 32.f));
 
+			// value between -1 and 1
+			const float fillCV = clamp(inputs[DENSITY_CV_INPUT].getVoltage() / 10.f, -1.f, +1.f) * params[DENSITY_CV_PARAM].getValue();
+			// knob + CV gives a density in range [0, 1]
+			const float density = clamp(fillCV + params[DENSITY_PARAM].getValue(), 0.f, 1.0f);
+			// fill is then the this fraction of length
+			currentParams.fill = 1 + std::round((currentParams.length - 1) * density);
+
+			currentParams.start = params[OFFSET_PARAM].getValue();
+			currentParams.mode = static_cast<SequenceMode>(params[SWITCH_PARAM].getValue());
+		}
+
+		// update params of sequence (if changed)
 		if (currentParams.length != oldParams.length || currentParams.fill != oldParams.fill) {
 			seq.calculate(currentParams.length, currentParams.fill);
 		}
@@ -87,7 +126,11 @@ struct Klasmata : Module {
 
 		const float in = inputs[CLOCK_INPUT].getVoltage();
 		if (clockTrigger.process(rescale(in, 0.1f, 2.f, 0.f, 1.f))) {
-			state = seq.next();
+			bool newState = seq.next();
+			if (newState != state) {
+				stateAlternating = !stateAlternating;
+			}
+			state = newState;
 		}
 
 		float out = 0.f;
@@ -95,7 +138,7 @@ struct Klasmata : Module {
 			out = state * in;
 		}
 		else if (currentParams.mode == LATCHED) {
-			out = state * 10.f;
+			out = stateAlternating * 10.f;
 		}
 		else {
 			out = 0.f;
@@ -120,16 +163,16 @@ struct KlasmataWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.55, 26.256)), module, Klasmata::OFFSET_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(12.55, 45.306)), module, Klasmata::LENGTH_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 26.256)), module, Klasmata::OFFSET_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 45.306)), module, Klasmata::LENGTH_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(32.875, 45.225)), module, Klasmata::SWITCH_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.55, 64.356)), module, Klasmata::DENSITY_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.55, 83.406)), module, Klasmata::LENGTH_ATTEN_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnob>(mm2px(Vec(12.55, 102.456)), module, Klasmata::DENSITY_ATTEN_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 64.356)), module, Klasmata::DENSITY_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 83.406)), module, Klasmata::LENGTH_CV_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 102.456)), module, Klasmata::DENSITY_CV_PARAM));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 57.925)), module, Klasmata::RESET_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 83.325)), module, Klasmata::LENGTH_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 96.025)), module, Klasmata::DENSITY_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 83.325)), module, Klasmata::LENGTH_CV_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 96.025)), module, Klasmata::DENSITY_CV_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 108.725)), module, Klasmata::CLOCK_INPUT));
 
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(32.875, 70.625)), module, Klasmata::OUT_OUTPUT));

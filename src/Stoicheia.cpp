@@ -74,6 +74,18 @@ struct Stoicheia : Module {
 		}
 	};
 
+	enum SequenceMode {
+		LATCHED,
+		MUTE,
+		NORMAL
+	};
+
+	struct SequenceParams {
+		int length;
+		int fill;
+		int start;
+		SequenceMode mode;
+	};
 
 	Stoicheia() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -89,8 +101,8 @@ struct Stoicheia : Module {
 		configParam<FillParam>(DENSITY_A_PARAM, 0.f, 1.f, 0.5f, "Fill density A");
 		configParam<FillParam>(DENSITY_B_PARAM, 0.f, 1.f, 0.5f, "Fill density B");
 		configParam<ABModeParam>(AB_MODE, INDEPENDENT, ALTERNATING, INDEPENDENT, "Sequence mode");
-		configSwitch(MODE_A_PARAM, 0.f, NORMAL, NORMAL, "Mode A", {"Latched", "Mute", "Normal"});
-		configSwitch(MODE_B_PARAM, 0.f, NORMAL, NORMAL, "Mode B", {"Latched", "Mute", "Normal"});
+		configSwitch(MODE_A_PARAM, LATCHED, NORMAL, NORMAL, "Mode A", {"Latched", "Mute", "Normal"});
+		configSwitch(MODE_B_PARAM, LATCHED, NORMAL, NORMAL, "Mode B", {"Latched", "Mute", "Normal"});
 
 		seq[0].offset = 0;
 		seq[0].calculate(12, 8);
@@ -99,6 +111,7 @@ struct Stoicheia : Module {
 		seq[1].calculate(12, 8);
 	}
 
+	// uint16_t for 16 steps
 	Sequence<uint16_t> seq[2];
 	dsp::SchmittTrigger triggers[NUM_INPUTS];
 	bool states[2] = {false};
