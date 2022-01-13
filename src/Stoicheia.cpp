@@ -17,13 +17,13 @@ struct Stoicheia : Module {
 	};
 	enum InputIds {
 		RESET_INPUT,
-		IN_A_INPUT,
-		IN_B_INPUT,
+		CLOCK_INPUT,
 		NUM_INPUTS
 	};
 	enum OutputIds {
 		OUT_A_OUTPUT,
 		OUT_B_OUTPUT,
+		CLOCK_THRU,
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -104,6 +104,13 @@ struct Stoicheia : Module {
 		configSwitch(MODE_A_PARAM, LATCHED, NORMAL, NORMAL, "Mode A", {"Latched", "Mute", "Normal"});
 		configSwitch(MODE_B_PARAM, LATCHED, NORMAL, NORMAL, "Mode B", {"Latched", "Mute", "Normal"});
 
+		configInput(CLOCK_INPUT, "Clock");
+		configInput(RESET_INPUT, "Reset");
+
+		configOutput(OUT_A_OUTPUT, "Sequence A");
+		configOutput(OUT_B_OUTPUT, "Sequence B");
+		configOutput(CLOCK_THRU, "Clock thru");
+
 		seq[0].offset = 0;
 		seq[0].calculate(12, 8);
 
@@ -152,19 +159,18 @@ struct Stoicheia : Module {
 			seq[1].rotate(currentB.start);
 		}
 
-		const float inA = inputs[IN_A_INPUT].getVoltage();
-		const float inB = inputs[IN_B_INPUT].getNormalVoltage(inA);
+		const bool risingEdge = triggers[CLOCK_INPUT].process(rescale(inputs[CLOCK_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f));
+		const float clockIn = 10.f * triggers[CLOCK_INPUT].isHigh();
+
 		float outA = 0.f, outB = 0.f;
 		if (mode == INDEPENDENT) {
-			if (triggers[IN_A_INPUT].process(rescale(inA, 0.1f, 2.f, 0.f, 1.f))) {
+			if (risingEdge) {
 				states[0] = seq[0].next();
-			}
-			if (triggers[IN_B_INPUT].process(rescale(inB, 0.1f, 2.f, 0.f, 1.f))) {
 				states[1] = seq[1].next();
 			}
 
 			if (currentA.mode == NORMAL) {
-				outA = states[0] * inA;
+				outA = states[0] * clockIn;
 			}
 			else if (currentA.mode == LATCHED) {
 				outA = states[0] * 10.f;
@@ -174,7 +180,7 @@ struct Stoicheia : Module {
 			}
 
 			if (currentB.mode == NORMAL) {
-				outB = states[1] * inB;
+				outB = states[1] * clockIn;
 			}
 			else if (currentB.mode == LATCHED) {
 				outB = states[1] * 10.f;
@@ -186,7 +192,7 @@ struct Stoicheia : Module {
 		}
 		else if (mode == ALTERNATING) {
 
-			if (triggers[IN_A_INPUT].process(rescale(inA, 0.1f, 2.f, 0.f, 1.f))) {
+			if (risingEdge) {
 
 				if (++combinedSequencePosition >= seq[0].length + seq[1].length) {
 					combinedSequencePosition = 0;
@@ -202,7 +208,7 @@ struct Stoicheia : Module {
 			}
 
 			if (currentA.mode == NORMAL) {
-				outA = states[activeSequence] * inA;	// TODO: is inB ignore in this mode?
+				outA = states[activeSequence] * clockIn;
 			}
 			else if (currentA.mode == LATCHED) {
 				outA = states[activeSequence] * 10.f;
@@ -211,7 +217,7 @@ struct Stoicheia : Module {
 				outA = 0.f;
 			}
 			if (currentB.mode == NORMAL) {
-				outB = states[activeSequence] * inA;	// TODO: is inB ignore in this mode?
+				outB = states[activeSequence] * clockIn;
 			}
 			else if (currentB.mode == LATCHED) {
 				outB = states[activeSequence] * 10.f;
@@ -230,7 +236,7 @@ struct Stoicheia : Module {
 		lights[B_LIGHT].setBrightness(outB / 10.f);
 		oldB = currentB;
 
-		lights[A_AND_B_LIGHT].setBrightness(clamp(inA / 10.f + inB / 10.f, 0.f, 1.f));
+		lights[A_AND_B_LIGHT].setBrightness(clockIn / 10.f);
 	}
 };
 
@@ -257,11 +263,11 @@ struct StoicheiaWidget : ModuleWidget {
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.976, 96.026)), module, Stoicheia::MODE_B_PARAM));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.275, 96.026)), module, Stoicheia::RESET_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(6.224, 108.712)), module, Stoicheia::IN_A_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(44.326, 108.712)), module, Stoicheia::IN_B_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(6.224, 108.712)), module, Stoicheia::CLOCK_INPUT));
 
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(18.925, 108.712)), module, Stoicheia::OUT_A_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(31.625, 108.712)), module, Stoicheia::OUT_B_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(44.326, 108.712)), module, Stoicheia::CLOCK_THRU));
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(25.275, 70.625)), module, Stoicheia::A_AND_B_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(12.574, 83.308)), module, Stoicheia::A_LIGHT));

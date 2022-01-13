@@ -15,10 +15,10 @@ public:
 		}
 		return false;
 	}
-public:
+
 	uint8_t pos;
 	uint8_t value;
-	bool state;
+
 	void rise() {
 		if (next())
 			on();
@@ -29,14 +29,19 @@ public:
 		off();
 	}
 	virtual bool isOff() {
-		return !state;
+		return delayOutput->getVoltage() == 0;
 	}
 	virtual void on() {
-		state = true;
+		delayOutput->setVoltage(10.f);
 	}
 	virtual void off() {
-		state = false;
+		delayOutput->setVoltage(0.f);
 	}
+	void setOutput(Output* delayOutput_) {
+		delayOutput = delayOutput_;
+	}
+private:
+	Output* delayOutput;
 };
 
 
@@ -54,13 +59,12 @@ public:
 		}
 		return false;
 	}
-public:
+
 	uint8_t pos;
 	int8_t value;
 	bool toggled;
-	bool state;
 	inline bool isOff() {
-		return !state;
+		return dividedOutput->getVoltage() == 0;
 	}
 	void rise() {
 		if (next()) {
@@ -73,14 +77,20 @@ public:
 			off();
 	}
 	void toggle() {
-		state = !state;
+		bool state = (bool) dividedOutput->getVoltage();
+		dividedOutput->setVoltage(10.f * !state);
 	}
 	void on() {
-		state = true;
+		dividedOutput->setVoltage(10.f);
 	}
 	void off() {
-		state = false;
+		dividedOutput->setVoltage(0.f);
 	}
+	void setOutput(Output* dividedOutput_) {
+		dividedOutput = dividedOutput_;
+	}
+private:
+	Output* dividedOutput;
 };
 
 class ClockDelay {
@@ -88,7 +98,6 @@ public:
 	uint16_t riseMark;
 	uint16_t fallMark;
 	uint16_t value;
-	bool state;
 	uint16_t pos;
 	bool running;
 	inline void start() {
@@ -122,75 +131,89 @@ public:
 		}
 	}
 	virtual void on() {
-		state = true;
+		delayOutput->setVoltage(10.f);
 	}
 	virtual void off() {
-		state = false;
+		delayOutput->setVoltage(0.f);
 	}
 	virtual bool isOff() {
-		return !state;
+		return delayOutput->getVoltage() == 0;
 	}
+	void setOutput(Output* delayOutput_) {
+		delayOutput = delayOutput_;
+	}
+private:
+	Output* delayOutput;
 };
 
 class ClockSwing : public ClockDelay {
-private:
-	bool stateSwing;
 public:
 	void on() {
-		stateSwing = true;
+		combinedOutput->setVoltage(10.f);
 	}
 	void off() {
-		stateSwing = false;
+		combinedOutput->setVoltage(0.f);
 	}
 	bool isOff() {
-		return !stateSwing;
+		return combinedOutput->getVoltage() == 0;
 	}
+	void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
+		ClockDelay::setOutput(delayOutput_);
+		combinedOutput = combinedOutput_;
+	}
+private:
+	Output* combinedOutput;
 };
 
 class DividingCounter : public ClockCounter {
-
-private:
-	bool stateDiv;
-
 public:
+	void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
+		ClockCounter::setOutput(delayOutput_);
+		combinedOutput = combinedOutput_;
+	}
 	void on() {
-		stateDiv = true;
+		combinedOutput->setVoltage(10.f);
+		//  DEBUG("DividingCounter rising, new state %g", combinedOutput->getVoltage());
+
 	}
 	void off() {
-		stateDiv = false;
+		combinedOutput->setVoltage(0.f);
+		// DEBUG("DividingCounter falling, new state %g", combinedOutput->getVoltage());
 	}
 	bool isOff() {
-		return !stateDiv;
+		return combinedOutput->getVoltage() == 0;
 	}
+private:
+	Output* combinedOutput;
 };
 
 struct Logoi : Module {
 	enum ParamId {
-		DIV_PARAM,
-		PLUS_PARAM,
-		DIV_CV_PARAM,
-		PLUS_CV_PARAM,
+		DIVISION_PARAM,
+		COUNT_OR_DELAY_PARAM,
+		DIVISION_CV_PARAM,
+		COUNT_OR_DELAY_CV_PARAM,
 		MODE_PARAM,
 		PARAMS_LEN
 	};
 	enum InputId {
-		DIV_CV_INPUT,
-		PLUS_CV_INPUT,
+		DIVISION_CV_INPUT,
+		COUNT_OR_DELAY_CV_INPUT,
 		RESET_INPUT,
 		CLOCK_INPUT,
 		INPUTS_LEN
 	};
 	enum OutputId {
 		DIVISION_OUTPUT,
-		ADDITION_OUTPUT,
+		ADDITION_DELAY_OUTPUT,
 		COMBINED_OUTPUT,
 		CLOCK_THRU_OUTPUT,
 		OUTPUTS_LEN
 	};
 	enum LightId {
 		COMBINED_LIGHT,
-		DIVIDED_LIGHT,
-		ADDITION_LIGHT,
+		DIVISION_LIGHT,
+		COUNT_OR_DELAY_LIGHT,
 		LIGHTS_LEN
 	};
 
@@ -201,16 +224,17 @@ struct Logoi : Module {
 	dsp::Timer delayTimer;
 	bool delaying = false;
 
-	bool combinedState = false;
+	dsp::ClockDivider clockCounter;
 
-	ClockCounter counter;
-	ClockDivider divider;
-	ClockDelay delay; // manually triggered from Timer0 interrupt
-	ClockSwing swinger;
-	DividingCounter divcounter;
+	ClockDivider divider;	// standard clock divider, powers left hand side
+	ClockCounter counter;	// clock counter, powers right hand side (when in count mode)
+	ClockDelay delay; 		// clock delay, powers right hand side (when in delay mode)
+
+	DividingCounter divcounter;		// used to combine left+right (when right in count mode)
+	ClockSwing swinger;				// used to combine left+right (when right in delay mode)
 
 	enum OperatingMode {
-		DIVIDE_MODE,
+		COUNT_MODE,
 		DELAY_MODE,
 		DISABLED_MODE
 	};
@@ -224,42 +248,58 @@ struct Logoi : Module {
 	}
 
 	Logoi() {
+
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		auto divParam = configParam(DIV_PARAM, 0.f, 32.f, 0.f, "");
+		auto divParam = configParam(DIVISION_PARAM, 0.f, 32.f, 0.f, "");
 		divParam->snapEnabled = true;
-		auto plusParam = configParam(PLUS_PARAM, 0.f, 31.f, 0.f, "");
+		auto plusParam = configParam(COUNT_OR_DELAY_PARAM, 0.f, 31.f, 0.f, "");
 		plusParam->snapEnabled = true;
 
-		configParam(DIV_CV_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(PLUS_CV_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(DIVISION_CV_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(COUNT_OR_DELAY_CV_PARAM, 0.f, 1.f, 0.f, "");
 		configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Count", "Delay", "Off"});
-		configInput(DIV_CV_INPUT, "");
-		configInput(PLUS_CV_INPUT, "");
+		configInput(DIVISION_CV_INPUT, "");
+		configInput(COUNT_OR_DELAY_CV_INPUT, "");
 		configInput(RESET_INPUT, "Reset");
 		configInput(CLOCK_INPUT, "Clock");
 
 		configOutput(DIVISION_OUTPUT, "");
-		configOutput(ADDITION_OUTPUT, "");
+		configOutput(ADDITION_DELAY_OUTPUT, "");
 		configOutput(COMBINED_OUTPUT, "");
 		configOutput(CLOCK_THRU_OUTPUT, "Clock thru");
 
+		// individual processors
+		divider.setOutput(&outputs[DIVISION_OUTPUT]); 			// left side, clock divider
+		counter.setOutput(&outputs[ADDITION_DELAY_OUTPUT]);		// right side, mode COUNT (switch down)
+		delay.setOutput(&outputs[ADDITION_DELAY_OUTPUT]);		// right side, mode DELAY (switch middle)
+
+		// combined processors: COUNT mode
+		divcounter.setOutputs(&outputs[ADDITION_DELAY_OUTPUT], &outputs[COMBINED_OUTPUT]);
+		// combined processors: DELAY mode
+		swinger.setOutputs(&outputs[ADDITION_DELAY_OUTPUT], &outputs[COMBINED_OUTPUT]);
+
 		reset();
+
+		clockCounter.setDivision(16384);
 	}
 
 	void process(const ProcessArgs& args) override {
 
 		{
-			divider.value = params[DIV_PARAM].getValue() - 1;
-			counter.value = params[PLUS_PARAM].getValue();
-			divcounter.value = params[PLUS_PARAM].getValue();
+			divider.value = params[DIVISION_PARAM].getValue() - 1;
+			counter.value = params[COUNT_OR_DELAY_PARAM].getValue();
+			divcounter.value = params[COUNT_OR_DELAY_PARAM].getValue();
 		}
 
 		if (resetDetector.process(inputs[RESET_INPUT].getVoltage())) {
 			reset();
 		}
 
-		delay.clock();
-		swinger.clock();
+		// do every X ticks
+		if (clockCounter.process()) {
+			delay.clock();
+			swinger.clock();
+		}
 
 		const int mode = (int) params[MODE_PARAM].getValue();
 
@@ -267,21 +307,26 @@ struct Logoi : Module {
 		const bool rising = clockDetector.process(inputs[CLOCK_INPUT].getVoltage());
 		// returns true when previous clock state was high and next is low
 		const bool falling = fallDetector.process(!clockDetector.isHigh());
+		// and forward the clock to the thru output
+		outputs[CLOCK_THRU_OUTPUT].setVoltage(clockDetector.isHigh() * 10.f);
 
 		if (rising) {
 			divider.rise();
 			switch (mode) {
-				case DELAY_MODE:
+				case DELAY_MODE: {
 					delay.rise();
 					if (divider.toggled) {
 						swinger.rise();
 					}
 					else {
+						//combinedState = false;
+						outputs[COMBINED_OUTPUT].setVoltage(0.f);
 						// COMBINED_OUTPUT_PORT &= ~_BV(COMBINED_OUTPUT_PIN); // pass through clock
 						// CLOCKDELAY_LEDS_PORT |= _BV(CLOCKDELAY_LED_1_PIN);
 					}
 					break;
-				case DIVIDE_MODE:
+				}
+				case COUNT_MODE:
 					counter.rise();
 					if (divider.toggled) {
 						divcounter.rise();
@@ -293,47 +338,46 @@ struct Logoi : Module {
 		}
 		else if (falling) {
 			switch (mode) {
-				case DELAY_MODE:
+				case DELAY_MODE: {
 					delay.fall();
 					if (divider.toggled) {
 						swinger.fall();
 						divider.toggled = false;
 					}
 					else {
+						//swinger.state = true;
+						//divider.state = true;
+						outputs[COMBINED_OUTPUT].setVoltage(10.f);
 						// COMBINED_OUTPUT_PORT |= _BV(COMBINED_OUTPUT_PIN); // pass through clock
 						// CLOCKDELAY_LEDS_PORT &= ~_BV(CLOCKDELAY_LED_1_PIN);
 					}
 					break;
-				case DIVIDE_MODE:
+				}
+				case COUNT_MODE:
 					counter.fall();
 					divcounter.fall();
 					break;
 			}
 			divider.fall();
 		}
-		outputs[DIVISION_OUTPUT].setVoltage(10.f * !divider.isOff());
-		lights[DIVIDED_LIGHT].setBrightnessSmooth(!divider.isOff(), args.sampleTime);
 
-		switch (mode) {
-			case DELAY_MODE:
-				outputs[ADDITION_OUTPUT].setVoltage(10.f * !delay.isOff());
-				lights[ADDITION_LIGHT].setBrightnessSmooth(!delay.isOff(), args.sampleTime);
-				break;
-			case DIVIDE_MODE:
-				outputs[ADDITION_OUTPUT].setVoltage(10.f * !counter.isOff());
-				lights[ADDITION_LIGHT].setBrightnessSmooth(!counter.isOff(), args.sampleTime);
-				break;
-			case DISABLED_MODE:
-				outputs[ADDITION_OUTPUT].setVoltage(0.f);
-				break;
+		// do lights
+		{
+			lights[DIVISION_LIGHT].setBrightnessSmooth(!divider.isOff(), args.sampleTime);
+			lights[COMBINED_LIGHT].setBrightnessSmooth((bool) outputs[COMBINED_OUTPUT].getVoltage(), args.sampleTime);
+
+			switch (mode) {
+				case DELAY_MODE:
+					lights[COUNT_OR_DELAY_LIGHT].setBrightnessSmooth(!delay.isOff(), args.sampleTime);
+					break;
+				case COUNT_MODE:
+					lights[COUNT_OR_DELAY_LIGHT].setBrightnessSmooth((bool) outputs[ADDITION_DELAY_OUTPUT].getVoltage(), args.sampleTime);
+					break;
+				case DISABLED_MODE:
+					outputs[ADDITION_DELAY_OUTPUT].setVoltage(0.f);
+					break;
+			}
 		}
-
-
-
-		outputs[CLOCK_THRU_OUTPUT].setVoltage(clockDetector.isHigh() * 10.f);
-
-		// lights[COMBINED_LIGHT].setBrightnessSmooth(combinedState, args.sampleTime);
-
 	}
 };
 
@@ -348,26 +392,26 @@ struct LogoiWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.533, 26.112)), module, Logoi::DIV_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.933, 26.112)), module, Logoi::PLUS_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.533, 45.162)), module, Logoi::DIV_CV_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.933, 45.162)), module, Logoi::PLUS_CV_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.533, 26.112)), module, Logoi::DIVISION_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.933, 26.112)), module, Logoi::COUNT_OR_DELAY_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.533, 45.162)), module, Logoi::DIVISION_CV_PARAM));
+		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.933, 45.162)), module, Logoi::COUNT_OR_DELAY_CV_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.225, 70.48)), module, Logoi::MODE_PARAM));
 
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.525, 83.18)), module, Logoi::DIV_CV_INPUT));
-		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(37.925, 83.18)), module, Logoi::PLUS_CV_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.525, 83.18)), module, Logoi::DIVISION_CV_INPUT));
+		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(37.925, 83.18)), module, Logoi::COUNT_OR_DELAY_CV_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.225, 95.88)), module, Logoi::RESET_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.525, 108.58)), module, Logoi::CLOCK_INPUT));
 
 
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(12.525, 95.88)), module, Logoi::DIVISION_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(37.925, 95.88)), module, Logoi::ADDITION_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(37.925, 95.88)), module, Logoi::ADDITION_DELAY_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(25.225, 108.58)), module, Logoi::COMBINED_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(37.925, 108.58)), module, Logoi::CLOCK_THRU_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(25.225, 57.78)), module, Logoi::COMBINED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(12.525, 70.48)), module, Logoi::DIVIDED_LIGHT));
-		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(37.975, 70.625)), module, Logoi::ADDITION_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(12.525, 70.48)), module, Logoi::DIVISION_LIGHT));
+		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(37.975, 70.625)), module, Logoi::COUNT_OR_DELAY_LIGHT));
 	}
 };
 
