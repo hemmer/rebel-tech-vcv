@@ -97,7 +97,7 @@ class ClockDelay {
 public:
 	uint16_t riseMark;
 	uint16_t fallMark;
-	uint16_t value;
+	uint16_t value; 	// number of (pseudo) clock ticks until rise should happen
 	uint16_t pos;
 	bool running;
 	inline void start() {
@@ -173,12 +173,10 @@ public:
 	}
 	void on() {
 		combinedOutput->setVoltage(10.f);
-		//  DEBUG("DividingCounter rising, new state %g", combinedOutput->getVoltage());
 
 	}
 	void off() {
 		combinedOutput->setVoltage(0.f);
-		// DEBUG("DividingCounter falling, new state %g", combinedOutput->getVoltage());
 	}
 	bool isOff() {
 		return combinedOutput->getVoltage() == 0;
@@ -224,7 +222,9 @@ struct Logoi : Module {
 	dsp::Timer delayTimer;
 	bool delaying = false;
 
-	dsp::ClockDivider clockCounter;
+
+	dsp::ClockDivider updateClocksController; 	// used to update delay counters every N samples
+	const int updateClocksFrequency = 64;		// number of samples to wait between updates (N)
 
 	ClockDivider divider;	// standard clock divider, powers left hand side
 	ClockCounter counter;	// clock counter, powers right hand side (when in count mode)
@@ -250,22 +250,21 @@ struct Logoi : Module {
 	Logoi() {
 
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		auto divParam = configParam(DIVISION_PARAM, 0.f, 32.f, 0.f, "");
-		divParam->snapEnabled = true;
-		auto plusParam = configParam(COUNT_OR_DELAY_PARAM, 0.f, 31.f, 0.f, "");
-		plusParam->snapEnabled = true;
+		configParam(DIVISION_PARAM, 0.f, 1.f, 0.f, "Divider");
+		configParam(COUNT_OR_DELAY_PARAM, 0.f, 1.f, 0.f, "Counter/Delay");
 
-		configParam(DIVISION_CV_PARAM, 0.f, 1.f, 0.f, "");
-		configParam(COUNT_OR_DELAY_CV_PARAM, 0.f, 1.f, 0.f, "");
+		configParam(DIVISION_CV_PARAM, 0.f, 1.f, 0.f, "Divider CV");
+		configParam(COUNT_OR_DELAY_CV_PARAM, 0.f, 1.f, 0.f, "Counter/Delay CV");
 		configSwitch(MODE_PARAM, 0.f, 2.f, 0.f, "Mode", {"Count", "Delay", "Off"});
-		configInput(DIVISION_CV_INPUT, "");
-		configInput(COUNT_OR_DELAY_CV_INPUT, "");
+
+		configInput(DIVISION_CV_INPUT, "Divider CV");
+		configInput(COUNT_OR_DELAY_CV_INPUT, "Counter/Delay CV");
 		configInput(RESET_INPUT, "Reset");
 		configInput(CLOCK_INPUT, "Clock");
 
-		configOutput(DIVISION_OUTPUT, "");
-		configOutput(ADDITION_DELAY_OUTPUT, "");
-		configOutput(COMBINED_OUTPUT, "");
+		configOutput(DIVISION_OUTPUT, "Divider");
+		configOutput(ADDITION_DELAY_OUTPUT, "Counter/Delay");
+		configOutput(COMBINED_OUTPUT, "Combined Output");
 		configOutput(CLOCK_THRU_OUTPUT, "Clock thru");
 
 		// individual processors
@@ -280,23 +279,53 @@ struct Logoi : Module {
 
 		reset();
 
-		clockCounter.setDivision(16384);
+		updateClocksController.setDivision(updateClocksFrequency);
+	}
+
+	// given VCV param in range 0 - 1, convert to the expected division (for left hand side)
+	int8_t divisionFromParam(float paramValue) {
+
+		constexpr int  ADC_OVERSAMPLING = 4;
+		constexpr int  ADC_VALUE_RANGE = (1024 * ADC_OVERSAMPLING);
+
+		// the raw (oversampled) value that ATMEGA would return
+		int v = std::round(paramValue * 4095);
+
+		return (v < (ADC_VALUE_RANGE / 32 / 2)) ? -1 : v >> 7;;
+	}
+
+	// given VCV param in range 0 - 1, convert to the expected count (for right hand side)
+	int8_t countFromParam(float paramValue) {
+
+		return std::round(31 * paramValue);
+	}
+
+	// given VCV param in range 0 - 1, convert to the expected delay (for right hand side)
+	uint16_t delayFromParam(float paramValue) {
+		// max Rack sample rate is 768kHz - with updateClocksFrequency == 64, which means we ping the clocks,
+		// delay.clock() and swinger.clock() every 64 samples, the largest reasonable value
+		// of maxClockTicks is 12000. Tick counter of type uint16_t [0, +65535] shouldn't overflow.
+		const float maxDelayTime = 1.f;
+		const float maxClockTicks = (maxDelayTime / APP->engine->getSampleTime()) / updateClocksFrequency;
+
+		return 1 + std::round(maxClockTicks * params[COUNT_OR_DELAY_PARAM].getValue());
 	}
 
 	void process(const ProcessArgs& args) override {
 
+		// process knobs
 		{
-			divider.value = params[DIVISION_PARAM].getValue() - 1;
-			counter.value = params[COUNT_OR_DELAY_PARAM].getValue();
-			divcounter.value = params[COUNT_OR_DELAY_PARAM].getValue();
+			divider.value = divisionFromParam(params[DIVISION_PARAM].getValue());
+			divcounter.value = counter.value = countFromParam(params[COUNT_OR_DELAY_PARAM].getValue());
+			delay.value = swinger.value = delayFromParam(params[COUNT_OR_DELAY_PARAM].getValue());
 		}
 
 		if (resetDetector.process(inputs[RESET_INPUT].getVoltage())) {
 			reset();
 		}
 
-		// do every X ticks
-		if (clockCounter.process()) {
+		// do every N ticks (set by updateClocksFrequency)
+		if (updateClocksController.process()) {
 			delay.clock();
 			swinger.clock();
 		}
@@ -319,14 +348,13 @@ struct Logoi : Module {
 						swinger.rise();
 					}
 					else {
-						//combinedState = false;
-						outputs[COMBINED_OUTPUT].setVoltage(0.f);
+						outputs[COMBINED_OUTPUT].setVoltage(10.f);
 						// COMBINED_OUTPUT_PORT &= ~_BV(COMBINED_OUTPUT_PIN); // pass through clock
 						// CLOCKDELAY_LEDS_PORT |= _BV(CLOCKDELAY_LED_1_PIN);
 					}
 					break;
 				}
-				case COUNT_MODE:
+				case COUNT_MODE: {
 					counter.rise();
 					if (divider.toggled) {
 						divcounter.rise();
@@ -334,6 +362,7 @@ struct Logoi : Module {
 							divider.toggled = false;
 					}
 					break;
+				}
 			}
 		}
 		else if (falling) {
@@ -345,21 +374,21 @@ struct Logoi : Module {
 						divider.toggled = false;
 					}
 					else {
-						//swinger.state = true;
-						//divider.state = true;
-						outputs[COMBINED_OUTPUT].setVoltage(10.f);
+						outputs[COMBINED_OUTPUT].setVoltage(0.f);
 						// COMBINED_OUTPUT_PORT |= _BV(COMBINED_OUTPUT_PIN); // pass through clock
 						// CLOCKDELAY_LEDS_PORT &= ~_BV(CLOCKDELAY_LED_1_PIN);
 					}
 					break;
 				}
-				case COUNT_MODE:
+				case COUNT_MODE: {
 					counter.fall();
 					divcounter.fall();
 					break;
+				}
 			}
 			divider.fall();
 		}
+
 
 		// do lights
 		{
