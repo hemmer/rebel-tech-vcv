@@ -1,191 +1,194 @@
 #include "plugin.hpp"
 
-// derived from https://github.com/pingdynasty/ClockDelay/blob/master/ClockDelay.cpp
 
-class ClockCounter {
-public:
-	inline void reset() {
-		pos = 0;
-		off();
-	}
-	bool next() {
-		if (++pos > value) {
-			pos = 0;
-			return true;
-		}
-		return false;
-	}
-
-	uint8_t pos;
-	uint8_t value;
-
-	void rise() {
-		if (next())
-			on();
-		else
-			off();
-	}
-	inline void fall() {
-		off();
-	}
-	virtual bool isOff() {
-		return delayOutput->getVoltage() == 0;
-	}
-	virtual void on() {
-		delayOutput->setVoltage(10.f);
-	}
-	virtual void off() {
-		delayOutput->setVoltage(0.f);
-	}
-	void setOutput(Output* delayOutput_) {
-		delayOutput = delayOutput_;
-	}
-private:
-	Output* delayOutput;
-};
-
-
-class ClockDivider {
-public:
-	inline void reset() {
-		pos = 0;
-		toggled = false;
-		off();
-	}
-	bool next() {
-		if (++pos > value) {
-			pos = 0;
-			return true;
-		}
-		return false;
-	}
-
-	uint8_t pos;
-	int8_t value;
-	bool toggled;
-	inline bool isOff() {
-		return dividedOutput->getVoltage() == 0;
-	}
-	void rise() {
-		if (next()) {
-			toggle();
-			toggled = true;
-		}
-	}
-	void fall() {
-		if (value == -1)
-			off();
-	}
-	void toggle() {
-		bool state = (bool) dividedOutput->getVoltage();
-		dividedOutput->setVoltage(10.f * !state);
-	}
-	void on() {
-		dividedOutput->setVoltage(10.f);
-	}
-	void off() {
-		dividedOutput->setVoltage(0.f);
-	}
-	void setOutput(Output* dividedOutput_) {
-		dividedOutput = dividedOutput_;
-	}
-private:
-	Output* dividedOutput;
-};
-
-class ClockDelay {
-public:
-	uint16_t riseMark;
-	uint16_t fallMark;
-	uint16_t value; 	// number of (pseudo) clock ticks until rise should happen
-	uint16_t pos;
-	bool running;
-	inline void start() {
-		pos = 0;
-		fallMark = 0;
-		running = true;
-	}
-	inline void stop() {
-		running = false;
-	}
-	inline void reset() {
-		stop();
-		off();
-	}
-	inline void rise() {
-		riseMark = value;
-		start();
-	}
-	inline void fall() {
-		fallMark = riseMark + pos;
-	}
-	inline void clock() {
-		if (running) {
-			if (++pos == riseMark) {
-				on();
-			}
-			else if (pos == fallMark) {
-				off();
-				stop(); // one-shot
-			}
-		}
-	}
-	virtual void on() {
-		delayOutput->setVoltage(10.f);
-	}
-	virtual void off() {
-		delayOutput->setVoltage(0.f);
-	}
-	virtual bool isOff() {
-		return delayOutput->getVoltage() == 0;
-	}
-	void setOutput(Output* delayOutput_) {
-		delayOutput = delayOutput_;
-	}
-private:
-	Output* delayOutput;
-};
-
-class ClockSwing : public ClockDelay {
-public:
-	void on() {
-		combinedOutput->setVoltage(10.f);
-	}
-	void off() {
-		combinedOutput->setVoltage(0.f);
-	}
-	bool isOff() {
-		return combinedOutput->getVoltage() == 0;
-	}
-	void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
-		ClockDelay::setOutput(delayOutput_);
-		combinedOutput = combinedOutput_;
-	}
-private:
-	Output* combinedOutput;
-};
-
-class DividingCounter : public ClockCounter {
-public:
-	void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
-		ClockCounter::setOutput(delayOutput_);
-		combinedOutput = combinedOutput_;
-	}
-	void on() {
-		combinedOutput->setVoltage(10.f);
-
-	}
-	void off() {
-		combinedOutput->setVoltage(0.f);
-	}
-	bool isOff() {
-		return combinedOutput->getVoltage() == 0;
-	}
-private:
-	Output* combinedOutput;
-};
 
 struct Logoi : Module {
+
+	// derived from https://github.com/pingdynasty/ClockDelay/blob/master/ClockDelay.cpp
+	class ClockCounter {
+	public:
+		inline void reset() {
+			pos = 0;
+			off();
+		}
+		bool next() {
+			if (++pos > value) {
+				pos = 0;
+				return true;
+			}
+			return false;
+		}
+
+		uint8_t pos;
+		uint8_t value;
+
+		void rise() {
+			if (next())
+				on();
+			else
+				off();
+		}
+		inline void fall() {
+			off();
+		}
+		virtual bool isOff() {
+			return delayOutput->getVoltage() == 0;
+		}
+		virtual void on() {
+			delayOutput->setVoltage(10.f);
+		}
+		virtual void off() {
+			delayOutput->setVoltage(0.f);
+		}
+		void setOutput(Output* delayOutput_) {
+			delayOutput = delayOutput_;
+		}
+	private:
+		Output* delayOutput;
+	};
+
+
+	class ClockDivider {
+	public:
+		inline void reset() {
+			pos = 0;
+			toggled = false;
+			off();
+		}
+		bool next() {
+			if (++pos > value) {
+				pos = 0;
+				return true;
+			}
+			return false;
+		}
+
+		uint8_t pos;
+		int8_t value;
+		bool toggled;
+		inline bool isOff() {
+			return dividedOutput->getVoltage() == 0;
+		}
+		void rise() {
+			if (next()) {
+				toggle();
+				toggled = true;
+			}
+		}
+		void fall() {
+			if (value == -1)
+				off();
+		}
+		void toggle() {
+			bool state = (bool) dividedOutput->getVoltage();
+			dividedOutput->setVoltage(10.f * !state);
+		}
+		void on() {
+			dividedOutput->setVoltage(10.f);
+		}
+		void off() {
+			dividedOutput->setVoltage(0.f);
+		}
+		void setOutput(Output* dividedOutput_) {
+			dividedOutput = dividedOutput_;
+		}
+	private:
+		Output* dividedOutput;
+	};
+
+	class ClockDelay {
+	public:
+		uint16_t riseMark;
+		uint16_t fallMark;
+		uint16_t value; 	// number of (pseudo) clock ticks until rise should happen
+		uint16_t pos;
+		bool running;
+		inline void start() {
+			pos = 0;
+			fallMark = 0;
+			running = true;
+		}
+		inline void stop() {
+			running = false;
+		}
+		inline void reset() {
+			stop();
+			off();
+		}
+		inline void rise() {
+			riseMark = value;
+			start();
+		}
+		inline void fall() {
+			fallMark = riseMark + pos;
+		}
+		inline void clock() {
+			if (running) {
+				if (++pos == riseMark) {
+					on();
+				}
+				else if (pos == fallMark) {
+					off();
+					stop(); // one-shot
+				}
+			}
+		}
+		virtual void on() {
+			delayOutput->setVoltage(10.f);
+		}
+		virtual void off() {
+			delayOutput->setVoltage(0.f);
+		}
+		virtual bool isOff() {
+			return delayOutput->getVoltage() == 0;
+		}
+		void setOutput(Output* delayOutput_) {
+			delayOutput = delayOutput_;
+		}
+	private:
+		Output* delayOutput;
+	};
+
+	class ClockSwing : public ClockDelay {
+	public:
+		void on() {
+			combinedOutput->setVoltage(10.f);
+		}
+		void off() {
+			combinedOutput->setVoltage(0.f);
+		}
+		bool isOff() {
+			return combinedOutput->getVoltage() == 0;
+		}
+		void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
+			ClockDelay::setOutput(delayOutput_);
+			combinedOutput = combinedOutput_;
+		}
+	private:
+		Output* combinedOutput;
+	};
+
+	class DividingCounter : public ClockCounter {
+	public:
+		void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
+			ClockCounter::setOutput(delayOutput_);
+			combinedOutput = combinedOutput_;
+		}
+		void on() {
+			combinedOutput->setVoltage(10.f);
+
+		}
+		void off() {
+			combinedOutput->setVoltage(0.f);
+		}
+		bool isOff() {
+			return combinedOutput->getVoltage() == 0;
+		}
+	private:
+		Output* combinedOutput;
+	};
+	// end of imported/modifed hardware code
+
 	enum ParamId {
 		DIVISION_PARAM,
 		COUNT_OR_DELAY_PARAM,
@@ -283,7 +286,7 @@ struct Logoi : Module {
 	}
 
 	// given VCV param in range 0 - 1, convert to the expected division (for left hand side)
-	int8_t divisionFromParam(float paramValue) {
+	static int8_t divisionFromParam(float paramValue) {
 
 		constexpr int  ADC_OVERSAMPLING = 4;
 		constexpr int  ADC_VALUE_RANGE = (1024 * ADC_OVERSAMPLING);
@@ -295,7 +298,7 @@ struct Logoi : Module {
 	}
 
 	// given VCV param in range 0 - 1, convert to the expected count (for right hand side)
-	int8_t countFromParam(float paramValue) {
+	static int8_t countFromParam(float paramValue) {
 
 		return std::round(31 * paramValue);
 	}
@@ -308,16 +311,36 @@ struct Logoi : Module {
 		const float maxDelayTime = 1.f;
 		const float maxClockTicks = (maxDelayTime / APP->engine->getSampleTime()) / updateClocksFrequency;
 
-		return 1 + std::round(maxClockTicks * params[COUNT_OR_DELAY_PARAM].getValue());
+		return 1 + std::round(maxClockTicks * paramValue);
+	}
+
+	void processBypass(const ProcessArgs& args) override {
+		clockDetector.process(inputs[CLOCK_INPUT].getVoltage());
+		outputs[DIVISION_OUTPUT].setVoltage(clockDetector.isHigh() * 10.f);
+		outputs[ADDITION_DELAY_OUTPUT].setVoltage(clockDetector.isHigh() * 10.f);
+		outputs[COMBINED_OUTPUT].setVoltage(clockDetector.isHigh() * 10.f);
+		outputs[CLOCK_THRU_OUTPUT].setVoltage(clockDetector.isHigh() * 10.f);
 	}
 
 	void process(const ProcessArgs& args) override {
 
-		// process knobs
+		// process LHS knobs
 		{
-			divider.value = divisionFromParam(params[DIVISION_PARAM].getValue());
-			divcounter.value = counter.value = countFromParam(params[COUNT_OR_DELAY_PARAM].getValue());
-			delay.value = swinger.value = delayFromParam(params[COUNT_OR_DELAY_PARAM].getValue());
+			// input CV in range -10V to +10V
+			const float scaledDivisionCV = clamp(params[DIVISION_CV_PARAM].getValue() * inputs[DIVISION_CV_INPUT].getVoltage(), -10.f, +10.f);
+			// CV sums with knob, where +10V is equivalent to full clockwise knob turn
+			const float divisionWithCV = clamp(params[DIVISION_PARAM].getValue() + scaledDivisionCV / 10.f, 0.f, 1.f);
+			divider.value = divisionFromParam(divisionWithCV);
+		}
+		// process RHS knobs
+		{
+			// input CV in range -10V to +10V
+			const float scaledCountDelayCV = clamp(params[COUNT_OR_DELAY_CV_PARAM].getValue() * inputs[COUNT_OR_DELAY_CV_INPUT].getVoltage(), -10.f, +10.f);
+			// CV sums with knob, where +10V is equivalent to full clockwise knob turn
+			const float countDelayWithCV = clamp(params[COUNT_OR_DELAY_PARAM].getValue() + scaledCountDelayCV / 10.f, 0.f, 1.f);
+			// mode RHS modes infer params from the same source(s)
+			divcounter.value = counter.value = countFromParam(countDelayWithCV);
+			delay.value = swinger.value = delayFromParam(countDelayWithCV);
 		}
 
 		if (resetDetector.process(inputs[RESET_INPUT].getVoltage())) {

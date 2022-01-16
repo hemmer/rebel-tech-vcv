@@ -92,6 +92,11 @@ struct Klasmata : Module {
 		seq.calculate(12, 8);
 	}
 
+	void processBypass(const ProcessArgs& args) override {
+		clockTrigger.process(rescale(inputs[CLOCK_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f));
+		outputs[OUT_OUTPUT].setVoltage(clockTrigger.isHigh() * 10.f);
+	}
+
 	void process(const ProcessArgs& args) override {
 
 		if (resetTrigger.process(rescale(inputs[RESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {

@@ -87,6 +87,14 @@ struct Stoicheia : Module {
 		SequenceMode mode;
 	};
 
+	// uint16_t for 16 steps
+	Sequence<uint16_t> seq[2];
+	dsp::SchmittTrigger triggers[NUM_INPUTS];
+	bool states[2] = {false};
+	int activeSequence = 0;
+	int combinedSequencePosition = 0;
+	SequenceParams oldA, currentA, oldB, currentB;
+
 	Stoicheia() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		auto startA = configParam(START_A_PARAM, 0.f, 15.f, 0.f, "Offset A");
@@ -118,13 +126,12 @@ struct Stoicheia : Module {
 		seq[1].calculate(12, 8);
 	}
 
-	// uint16_t for 16 steps
-	Sequence<uint16_t> seq[2];
-	dsp::SchmittTrigger triggers[NUM_INPUTS];
-	bool states[2] = {false};
-	int activeSequence = 0;
-	int combinedSequencePosition = 0;
-	SequenceParams oldA, currentA, oldB, currentB;
+	void processBypass(const ProcessArgs& args) override {
+		triggers[CLOCK_INPUT].process(rescale(inputs[CLOCK_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f));
+		outputs[OUT_A_OUTPUT].setVoltage(triggers[CLOCK_INPUT].isHigh() * 10.f);
+		outputs[OUT_B_OUTPUT].setVoltage(triggers[CLOCK_INPUT].isHigh() * 10.f);
+		outputs[CLOCK_THRU].setVoltage(triggers[CLOCK_INPUT].isHigh() * 10.f);
+	}
 
 	void process(const ProcessArgs& args) override {
 
@@ -237,6 +244,8 @@ struct Stoicheia : Module {
 		oldB = currentB;
 
 		lights[A_AND_B_LIGHT].setBrightness(clockIn / 10.f);
+		outputs[CLOCK_THRU].setVoltage(triggers[CLOCK_INPUT].isHigh() * 10.f);
+
 	}
 };
 
