@@ -11,6 +11,7 @@
    sodipodi:docname="Stoicheia.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -29,13 +30,13 @@
      fit-margin-bottom="0"
      inkscape:zoom="1.5554293"
      inkscape:cx="99.008036"
-     inkscape:cy="266.48592"
+     inkscape:cy="266.48591"
      inkscape:window-width="1312"
      inkscape:window-height="1081"
      inkscape:window-x="2651"
-     inkscape:window-y="165"
+     inkscape:window-y="137"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer4" />
+     inkscape:current-layer="layer3" />
   <defs
      id="defs8241">
     <clipPath
@@ -238,6 +239,28 @@
            id="circle18302-0" />
       </g>
     </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5761"
+       id="linearGradient5763"
+       x1="9.9999981"
+       y1="128.5"
+       x2="9.9999981"
+       y2="5.583496e-07"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(2.5251642,0,0,0.99990793,0.02344149,0.02343333)" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5761">
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:1"
+         offset="0"
+         id="stop5757" />
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:0.10196079"
+         offset="1"
+         id="stop5759" />
+    </linearGradient>
   </defs>
   <g
      inkscape:groupmode="layer"
@@ -249,7 +272,14 @@
        width="50.503281"
        height="128.50352"
        id="rect5454"
-       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#ff0000;stroke-width:0.046875" />
+       style="display:inline;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.046875" />
+    <rect
+       x="0.023437919"
+       y="0.02343484"
+       width="50.503281"
+       height="128.48817"
+       id="rect2081-3"
+       style="display:inline;fill:url(#linearGradient5763);fill-opacity:1;stroke:none;stroke-width:0.0794502" />
     <g
        id="g240"
        clip-path="url(#clipPath18264-9)"

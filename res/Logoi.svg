@@ -11,6 +11,7 @@
    sodipodi:docname="Logoi.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -23,17 +24,29 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="2.1997092"
-     inkscape:cx="119.10665"
-     inkscape:cy="270.263"
-     inkscape:window-width="2560"
-     inkscape:window-height="1303"
+     inkscape:zoom="1.0998546"
+     inkscape:cx="75.009915"
+     inkscape:cy="255.03371"
+     inkscape:window-width="1333"
+     inkscape:window-height="1081"
      inkscape:window-x="0"
      inkscape:window-y="25"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer2" />
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
   <defs
      id="defs1163">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5068">
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:1"
+         offset="0"
+         id="stop5064" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.102"
+         offset="1"
+         id="stop5066" />
+    </linearGradient>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath12741">
@@ -174,6 +187,15 @@
         </g>
       </g>
     </clipPath>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5068"
+       id="linearGradient5070"
+       x1="25.23402"
+       y1="127.51783"
+       x2="25.265982"
+       y2="0.26048118"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <g
      inkscape:label="Layer 1"
@@ -184,12 +206,38 @@
        style="display:inline;fill:#ffffff;stroke:#ff0000;stroke-width:0.05;fill-opacity:1"
        transform="translate(0.025,0.02499676)">
       <rect
+         id="rect4378"
+         height="128.5"
+         width="50.5"
+         y="0"
+         x="0"
+         style="fill:#ffffff;fill-opacity:1" />
+      <rect
          id="rect4385"
          height="128.5"
          width="50.5"
          y="0"
          x="0"
          style="fill:#ffffff;fill-opacity:1" />
+    </g>
+    <g
+       id="g4383-8"
+       style="display:inline;fill:url(#linearGradient5070);fill-opacity:1;stroke:#ff0000;stroke-width:0.05"
+       transform="translate(0.025,0.02499676)">
+      <rect
+         id="rect4378-6"
+         height="128.5"
+         width="50.5"
+         y="0"
+         x="0"
+         style="fill:url(#linearGradient5070);fill-opacity:1" />
+      <rect
+         id="rect4385-5"
+         height="128.5"
+         width="50.5"
+         y="0"
+         x="0"
+         style="fill:url(#linearGradient5070);fill-opacity:1" />
     </g>
     <g
        id="g240"

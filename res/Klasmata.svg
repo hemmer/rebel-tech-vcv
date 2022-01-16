@@ -11,6 +11,7 @@
    sodipodi:docname="Klasmata.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -27,17 +28,40 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="2.1997092"
-     inkscape:cx="89.32999"
-     inkscape:cy="265.71694"
+     inkscape:zoom="0.77771465"
+     inkscape:cx="111.86622"
+     inkscape:cy="151.08369"
      inkscape:window-width="1312"
      inkscape:window-height="1081"
-     inkscape:window-x="2495"
-     inkscape:window-y="97"
+     inkscape:window-x="2560"
+     inkscape:window-y="69"
      inkscape:window-maximized="0"
-     inkscape:current-layer="layer3" />
+     inkscape:current-layer="g16669" />
   <defs
-     id="defs3460" />
+     id="defs3460">
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient5761"
+       id="linearGradient5763"
+       x1="9.9999981"
+       y1="128.5"
+       x2="9.9999981"
+       y2="5.583496e-07"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(2.0235051,0,0,1,-0.02499704,-0.02500492)" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient5761">
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:1"
+         offset="0"
+         id="stop5757" />
+      <stop
+         style="stop-color:#d9d9d9;stop-opacity:0.10196079"
+         offset="1"
+         id="stop5759" />
+    </linearGradient>
+  </defs>
   <g
      inkscape:label="background"
      inkscape:groupmode="layer"
@@ -51,9 +75,16 @@
          id="rect16671"
          height="128.5"
          width="40.299999"
-         y="0"
-         x="0"
-         style="fill:#ffffff;fill-opacity:1" />
+         y="-0.025004949"
+         x="-0.025"
+         style="fill:#ffffff;fill-opacity:1;stroke:none" />
+      <rect
+         x="-0.025"
+         y="-0.025004949"
+         width="40.470104"
+         height="128.5"
+         id="rect2081-3"
+         style="display:inline;fill:url(#linearGradient5763);fill-opacity:1;stroke:none;stroke-width:0.071125" />
       <g
          id="g16679"
          transform="translate(12.53,102.35)">
@@ -1004,7 +1035,7 @@
      inkscape:groupmode="layer"
      id="layer3"
      inkscape:label="components"
-     style="display:inline">
+     style="display:none">
     <circle
        style="display:inline;fill:#ff0000;fill-opacity:1;stroke-width:0.435;stroke-linejoin:round"
        id="path1465"
