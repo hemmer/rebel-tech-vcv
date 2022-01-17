@@ -16,7 +16,7 @@ We have tried to make the VCV implementations as authentic as possible, however 
 
 * CV inputs accept range -10V to +10V, and sum with the knob. E.g. if the knob is at zero, +10V corresonds to the equivalent state where the knob is 100%.
 
-* CLK has the option to output gates (50% duty) or triggers, see context menu.
+* CLK has the option to output gates (50% duty) or triggers, and allows x1 or x16 output varients - see context menu.
 
 * Bidirectional jacks aren't supported, so where clock multis are present on hardware, one is designated as Clock Thru instead.
 

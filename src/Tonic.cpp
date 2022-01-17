@@ -11,8 +11,8 @@ struct Tonic : Module {
 		NUM_INPUTS
 	};
 	enum OutputIds {
-		OUT_A_OUTPUT,
-		OUT_B_OUTPUT,
+		GATE_OUTPUT,
+		CV_OUTPUT,
 		NUM_OUTPUTS
 	};
 	enum LightIds {
@@ -20,29 +20,35 @@ struct Tonic : Module {
 		NUM_LIGHTS
 	};
 
-	Tonic() {
-		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(SCALE_PARAM, -6.f, 12.f, 0.f, "Scale");
-		for (int i = 0; i < ParamIds::BUTTON_LAST; ++i) {
-			configParam(BUTTON + i, 0.f, 1.f, 0.f, "Button " + std::to_string(i + 1));
-		}
-	}
-
 	bool states[6];
 	dsp::SchmittTrigger triggers[6];
 	static constexpr float semitone = 1.f / 12.f;    // one semitone is a 1/12 volt
-	
+
 	const int numSemitones[6] = {0, 16, 8, 4, 2, -1};
+
+	Tonic() {
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
+		configParam(SCALE_PARAM, -6.f, 12.f, 0.f, "Scale");
+
+		configButton(BUTTON, "Add N semitones");
+		configInput(GATE_INPUT, "Add N semitones gate");
+
+		for (int i = 1; i < ParamIds::BUTTON_LAST; ++i) {
+			configButton(BUTTON + i, string::f("Add %d semitones", numSemitones[i]));
+			configInput(GATE_INPUT + i, string::f("Add %d semitones gate", numSemitones[i]));
+		}
+
+		configOutput(GATE_OUTPUT, "Gate (logical OR of all inputs/buttons)");
+		configOutput(CV_OUTPUT, "Quantized CV");
+	}
 
 	void process(const ProcessArgs& args) override {
 
 		bool globalState = false;
 		float voltage = 0.f;
 		for (int i = 0; i < ParamIds::BUTTON_LAST; ++i) {
-			//rescale(inA, 0.1f, 2.f, 0.f, 1.f))
+			
 			triggers[i].process(inputs[GATE_INPUT + i].getVoltage());
-
-
 			states[i] = params[BUTTON + i].getValue() || triggers[i].isHigh();
 
 			if (i == 0) {
@@ -57,8 +63,8 @@ struct Tonic : Module {
 			lights[LED + i].setBrightness(states[i]);
 		}
 
-		outputs[OUT_A_OUTPUT].setVoltage(10.f * globalState);
-		outputs[OUT_B_OUTPUT].setVoltage(voltage);
+		outputs[GATE_OUTPUT].setVoltage(10.f * globalState);
+		outputs[CV_OUTPUT].setVoltage(voltage);
 	}
 };
 
@@ -93,8 +99,8 @@ struct TonicWidget : ModuleWidget {
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 83.325)), module, Tonic::GATE_INPUT + 4));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(7.451, 96.025)), module, Tonic::GATE_INPUT + 5));
 
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(7.451, 108.725)), module, Tonic::OUT_A_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(22.645, 108.725)), module, Tonic::OUT_B_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(7.451, 108.725)), module, Tonic::GATE_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(22.645, 108.725)), module, Tonic::CV_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 32.493)), module, Tonic::LED + 0));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 45.196)), module, Tonic::LED + 1));

@@ -99,7 +99,8 @@ template<> void ClockGenerator<false>::on() {
 }
 template<> void ClockGenerator<true>::on() {
 	state = true;
-	if (master) master->reset();
+	if (master)
+		master->reset();
 }
 
 
@@ -114,15 +115,15 @@ struct CLK : Module {
 		INPUTS_LEN
 	};
 	enum OutputId {
-		_1_OUTPUT,
-		_2_OUTPUT,
-		_3_OUTPUT,
+		MAIN_OUTPUT,
+		CLOCK_8_OUTPUT,
+		CLOCK_24_OUTPUT,
 		OUTPUTS_LEN
 	};
 	enum LightId {
-		_1_LIGHT,
-		_2_LIGHT,
-		_3_LIGHT,
+		MAIN_LIGHT,
+		CLOCK_8_LIGHT,
+		CLOCK_24_LIGHT,
 		LIGHTS_LEN
 	};
 
@@ -151,11 +152,11 @@ struct CLK : Module {
 	CLK() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(BPM_PARAM, 40.f, 200.f, 120.f, "BPM");
-		configParam<Scale8ParamQuantity>(SCALE_8_PARAM, 0, 10, 5.f, "");
-		configParam<Scale24ParamQuantity>(SCALE_24_PARAM, 0.f, 10.f, 5.f, "");
-		configOutput(_1_OUTPUT, "Clock out (16th notes)");
-		configOutput(_2_OUTPUT, "");
-		configOutput(_3_OUTPUT, "");
+		configParam<Scale8ParamQuantity>(SCALE_8_PARAM, 0, 10, 5.f, "Multiplication/division");
+		configParam<Scale24ParamQuantity>(SCALE_24_PARAM, 0.f, 10.f, 5.f, "Multiplication/division");
+		configOutput(MAIN_OUTPUT, "Main clock");
+		configOutput(CLOCK_8_OUTPUT, "Multiplied/divided clock #1");
+		configOutput(CLOCK_24_OUTPUT, "Multiplied/divided clock #2");
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -175,7 +176,7 @@ struct CLK : Module {
 
 		// length of a tick of the master clock
 		uint32_t scale = (use16ths) ? 16 : 1;
-		float tickTime = 1.f / (scale * 48 * params[BPM_PARAM].getValue() / 60.f);
+		double tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
 		uint32_t ticks = args.sampleRate * tickTime;
 		uint16_t duty = max(1, (1e-3 / tickTime) / 48);
 
@@ -196,13 +197,13 @@ struct CLK : Module {
 
 		master.clock();
 
-		outputs[_1_OUTPUT].setVoltage(10.f * master.clockA.isOn());
-		outputs[_2_OUTPUT].setVoltage(10.f * master.clockB.isOn());
-		outputs[_3_OUTPUT].setVoltage(10.f * master.clockC.isOn());
+		outputs[MAIN_OUTPUT].setVoltage(10.f * master.clockA.isOn());
+		outputs[CLOCK_8_OUTPUT].setVoltage(10.f * master.clockB.isOn());
+		outputs[CLOCK_24_OUTPUT].setVoltage(10.f * master.clockC.isOn());
 
-		lights[_1_LIGHT].setBrightnessSmooth(master.clockA.isOn(), args.sampleTime);
-		lights[_2_LIGHT].setBrightnessSmooth(master.clockB.isOn(), args.sampleTime);
-		lights[_3_LIGHT].setBrightnessSmooth(master.clockC.isOn(), args.sampleTime);
+		lights[MAIN_LIGHT].setBrightnessSmooth(master.clockA.isOn(), args.sampleTime);
+		lights[CLOCK_8_LIGHT].setBrightnessSmooth(master.clockB.isOn(), args.sampleTime);
+		lights[CLOCK_24_LIGHT].setBrightnessSmooth(master.clockC.isOn(), args.sampleTime);
 	}
 
 	void dataFromJson(json_t* rootJ) override {
@@ -239,27 +240,21 @@ struct CLKWidget : ModuleWidget {
 		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 38.85)), module, CLK::SCALE_8_PARAM));
 		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 57.9)), module, CLK::SCALE_24_PARAM));
 
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 76.95)), module, CLK::_1_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.852, 92.205)), module, CLK::_2_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 108.7)), module, CLK::_3_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 76.95)), module, CLK::MAIN_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.852, 92.205)), module, CLK::CLOCK_8_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 108.7)), module, CLK::CLOCK_24_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 69.33)), module, CLK::_1_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 85.205)), module, CLK::_2_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 101.08)), module, CLK::_3_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 69.33)), module, CLK::MAIN_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 85.205)), module, CLK::CLOCK_8_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 101.08)), module, CLK::CLOCK_24_LIGHT));
 	}
 
 	void appendContextMenu(Menu* menu) override {
 		CLK* module = dynamic_cast<CLK*>(this->module);
 		assert(module);
 
-		menu->addChild(createIndexPtrSubmenuItem("Output mode",
-				{"x1", "x16"},
-				&module->use16ths
-			));
-		menu->addChild(createIndexPtrSubmenuItem("Output mode",
-				{"Trigger mode", "Gate mode"},
-				&module->useGates
-			));
+		menu->addChild(createIndexPtrSubmenuItem("Output mode",	{"x1", "x16"}, &module->use16ths));
+		menu->addChild(createIndexPtrSubmenuItem("Output mode", {"Trigger mode", "Gate mode"}, &module->useGates));
 
 	}
 };
