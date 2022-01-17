@@ -241,7 +241,7 @@ struct CLKWidget : ModuleWidget {
 		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 57.9)), module, CLK::SCALE_24_PARAM));
 
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 76.95)), module, CLK::MAIN_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.852, 92.205)), module, CLK::CLOCK_8_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 92.205)), module, CLK::CLOCK_8_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 108.7)), module, CLK::CLOCK_24_OUTPUT));
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 69.33)), module, CLK::MAIN_LIGHT));
