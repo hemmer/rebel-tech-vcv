@@ -175,7 +175,7 @@ struct CLK : Module {
 		}
 
 		// length of a tick of the master clock
-		uint32_t scale = (use16ths) ? 16 : 1;
+		uint32_t scale = (use16ths) ? 16 : 4;
 		double tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
 		uint32_t ticks = args.sampleRate * tickTime;
 		uint16_t maxDuty = 48 >> 1;
@@ -248,7 +248,7 @@ struct CLKWidget : ModuleWidget {
 		CLK* module = dynamic_cast<CLK*>(this->module);
 		assert(module);
 
-		menu->addChild(createIndexPtrSubmenuItem("Output mode",	{"x1", "x16"}, &module->use16ths));
+		menu->addChild(createIndexPtrSubmenuItem("Output mode",	{"x4", "x16"}, &module->use16ths));
 		menu->addChild(createIndexPtrSubmenuItem("Output mode", {"Trigger mode", "Gate mode"}, &module->useGates));
 
 	}
