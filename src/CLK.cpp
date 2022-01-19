@@ -126,15 +126,21 @@ struct CLK : Module {
 		CLOCK_24_LIGHT,
 		LIGHTS_LEN
 	};
-
+  enum TriggerMode {
+    VCV_MODE,
+    ORIGINAL_MODE,
+    GATE_MODE,
+    OUTPUT_MODE_LEN
+  };
+  
 	MasterClock master;
 
 	SubClockTick mulB = 5;
 	SubClockTick mulC = 5;
 
 	int modifier8Cached = 0, modifier24Cached = 0;
-	bool use16ths = true;
-	bool useGates = false;
+	int outputMultiplier = 1;
+	TriggerMode triggerMode = VCV_MODE;
 
 	struct Scale8ParamQuantity : ParamQuantity {
 		std::string getDisplayValueString() override {
@@ -175,15 +181,25 @@ struct CLK : Module {
 		}
 
 		// length of a tick of the master clock
-		uint32_t scale = (use16ths) ? 16 : 4;
+		uint32_t scale = 2 * (1 << outputMultiplier);
 		double tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
 		uint32_t ticks = args.sampleRate * tickTime;
-		uint16_t maxDuty = 48 >> 1;
 
 		// master clock, running at 48x intended BPM
 		master.setPeriod(ticks);
-		if (useGates)
+		uint16_t maxDuty;
+		switch(triggerMode){
+		case ORIGINAL_MODE:
+		  maxDuty = 48 >> 1;
+		  break;
+		case GATE_MODE:
 		  maxDuty = INT16_MAX;
+		  break;
+		case VCV_MODE:
+		default:
+		  maxDuty = max(1, (1e-3 / tickTime) / 48);
+		  break;
+		}
 
 		// A ticks every 48 master clock ticks
 		master.clockA.setPeriod(48, maxDuty);
@@ -202,21 +218,20 @@ struct CLK : Module {
 	}
 
 	void dataFromJson(json_t* rootJ) override {
-		json_t* use16thsJ = json_object_get(rootJ, "use16ths");
-		if (use16thsJ) {
-			use16ths = json_boolean_value(use16thsJ);
+		json_t* multiplier = json_object_get(rootJ, "multiplier");
+		if (multiplier) {
+		  outputMultiplier = json_integer_value(multiplier);
 		}
-		json_t* useGatesJ = json_object_get(rootJ, "useGates");
-		if (useGatesJ) {
-			useGates = json_boolean_value(useGatesJ);
+		json_t* modeJ = json_object_get(rootJ, "mode");
+		if (modeJ) {
+		  triggerMode = (TriggerMode)json_integer_value(modeJ);
 		}
 	}
 
 	json_t* dataToJson() override {
 		json_t* rootJ = json_object();
-
-		json_object_set_new(rootJ, "use16ths", json_boolean(use16ths));
-		json_object_set_new(rootJ, "useGates", json_boolean(useGates));
+		json_object_set_new(rootJ, "multiplier", json_integer(outputMultiplier));
+		json_object_set_new(rootJ, "mode", json_integer(triggerMode));
 
 		return rootJ;
 	}
@@ -248,8 +263,8 @@ struct CLKWidget : ModuleWidget {
 		CLK* module = dynamic_cast<CLK*>(this->module);
 		assert(module);
 
-		menu->addChild(createIndexPtrSubmenuItem("Output mode",	{"x4", "x16"}, &module->use16ths));
-		menu->addChild(createIndexPtrSubmenuItem("Output mode", {"Trigger mode", "Gate mode"}, &module->useGates));
+		menu->addChild(createIndexPtrSubmenuItem("Output multiplier",	{"x2", "x4", "x8", "x16"}, &module->outputMultiplier));
+		menu->addChild(createIndexPtrSubmenuItem("Trigger mode", {"VCV", "Original", "Gate"}, &module->triggerMode));
 
 	}
 };
