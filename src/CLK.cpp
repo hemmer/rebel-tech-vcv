@@ -28,8 +28,8 @@ public:
 	SubClockTick period;
 	SubClockTick duty;
 	SubClockTick pos;
-	void setPeriod(SubClockTick ticks, SubClockTick newDuty) {
-		duty = newDuty;
+	void setPeriod(SubClockTick ticks, SubClockTick maxDuty) {
+	        duty = min(maxDuty, ticks/2);
 		period = ticks - 1;
 	}
 	void resetPhase() {
@@ -178,22 +178,17 @@ struct CLK : Module {
 		uint32_t scale = (use16ths) ? 16 : 1;
 		double tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
 		uint32_t ticks = args.sampleRate * tickTime;
-		uint16_t duty = max(1, (1e-3 / tickTime) / 48);
+		uint16_t maxDuty = 48 >> 1;
 
 		// master clock, running at 48x intended BPM
 		master.setPeriod(ticks);
-		if (useGates) {
-			// A ticks every 48 master clock ticks
-			master.clockA.setPeriod(48, 48 >> 1);
-			master.clockB.setPeriod(B_MULTIPLIERS[b], B_MULTIPLIERS[b] >> 1);
-			master.clockC.setPeriod(C_MULTIPLIERS[c], C_MULTIPLIERS[c] >> 1);
-		}
-		else {
-			// A ticks every 48 master clock ticks
-			master.clockA.setPeriod(48, duty);
-			master.clockB.setPeriod(B_MULTIPLIERS[b], duty);
-			master.clockC.setPeriod(C_MULTIPLIERS[c], duty);
-		}
+		if (useGates)
+		  maxDuty = INT16_MAX;
+
+		// A ticks every 48 master clock ticks
+		master.clockA.setPeriod(48, maxDuty);
+		master.clockB.setPeriod(B_MULTIPLIERS[b], maxDuty);
+		master.clockC.setPeriod(C_MULTIPLIERS[c], maxDuty);
 
 		master.clock();
 
