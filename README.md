@@ -3,7 +3,7 @@
 
 This repo contains VCV ports of Rebel Technology Eurorack modules. See: https://www.rebeltech.org/ and https://github.com/pingdynasty/.
 
-License: GPL-3.0-or-later 
+License: GPL-3.0-only 
 
 ## Screenshots
 

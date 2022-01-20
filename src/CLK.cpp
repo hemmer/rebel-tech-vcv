@@ -139,7 +139,7 @@ struct CLK : Module {
 	SubClockTick mulC = 5;
 
 	int modifier8Cached = 0, modifier24Cached = 0;
-	int outputMultiplier = 1;
+	int outputMultiplier = 0;
 	TriggerMode triggerMode = VCV_MODE;
 
 	struct Scale8ParamQuantity : ParamQuantity {
@@ -181,7 +181,7 @@ struct CLK : Module {
 		}
 
 		// length of a tick of the master clock
-		uint32_t scale = 2 * (1 << outputMultiplier);
+		uint32_t scale = (1 << outputMultiplier);
 		double tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
 		uint32_t ticks = args.sampleRate * tickTime;
 
@@ -263,7 +263,7 @@ struct CLKWidget : ModuleWidget {
 		CLK* module = dynamic_cast<CLK*>(this->module);
 		assert(module);
 
-		menu->addChild(createIndexPtrSubmenuItem("Output multiplier",	{"x2", "x4", "x8", "x16"}, &module->outputMultiplier));
+		menu->addChild(createIndexPtrSubmenuItem("Output multiplier",	{"x1", "x2", "x4", "x8", "x16"}, &module->outputMultiplier));
 		menu->addChild(createIndexPtrSubmenuItem("Trigger mode", {"VCV", "Original", "Gate"}, &module->triggerMode));
 
 	}

@@ -44,13 +44,11 @@ struct Stoicheia : Module {
 		std::string getDisplayValueString() override {
 			if (module != nullptr) {
 				if (paramId == DENSITY_A_PARAM) {
-					int lengthA = module->params[LENGTH_A_PARAM].getValue();
-					int fillValue = std::round(getValue() * (lengthA - 1));
+					int fillValue = paramToFill(getValue(), module->params[LENGTH_A_PARAM].getValue());
 					return std::to_string(fillValue);
 				}
 				else if (paramId == DENSITY_B_PARAM) {
-					int lengthB = module->params[LENGTH_B_PARAM].getValue();
-					int fillValue = 1 + std::round(getValue() * (lengthB - 1));
+					int fillValue = paramToFill(getValue(), module->params[LENGTH_B_PARAM].getValue());
 					return std::to_string(fillValue);
 				}
 				else {
@@ -61,8 +59,63 @@ struct Stoicheia : Module {
 				return "";
 			}
 		}
+
+		void setDisplayValueString(std::string s) override {
+			float fill = std::atof(s.c_str());
+			if (module != nullptr) {
+				if (paramId == DENSITY_A_PARAM) {
+					int lengthA = module->params[LENGTH_A_PARAM].getValue();
+					ParamQuantity::setValue(fillToParam(fill, lengthA));
+				}
+				else if (paramId == DENSITY_A_PARAM) {
+					int lengthB = module->params[LENGTH_B_PARAM].getValue();
+					ParamQuantity::setValue(fillToParam(fill, lengthB));
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
 	};
 
+	struct OffsetParam : ParamQuantity {
+		// effective offset will depend on on the sequence length
+		std::string getDisplayValueString() override {
+			if (module != nullptr) {
+				if (paramId == START_A_PARAM) {
+					int offset = paramToOffset(getValue(), module->params[LENGTH_A_PARAM].getValue());
+					return std::to_string(offset);
+				}
+				else if (paramId == START_B_PARAM) {
+					int offset = paramToOffset(getValue(), module->params[LENGTH_B_PARAM].getValue());
+					return std::to_string(offset);
+				}
+				else {
+					assert(false);
+				}
+			}
+			else {
+				return "";
+			}
+		}
+
+		void setDisplayValueString(std::string s) override {
+			float offset = std::atof(s.c_str());
+			if (module != nullptr) {
+				if (paramId == START_A_PARAM) {
+					int lengthA = module->params[LENGTH_A_PARAM].getValue();
+					ParamQuantity::setValue(offsetToParam(offset, lengthA));
+				}
+				else if (paramId == START_B_PARAM) {
+					int lengthB = module->params[LENGTH_B_PARAM].getValue();
+					ParamQuantity::setValue(offsetToParam(offset, lengthB));
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
+	};
 
 	struct ABModeParam : ParamQuantity {
 		std::string getDisplayValueString() override {
@@ -97,10 +150,9 @@ struct Stoicheia : Module {
 
 	Stoicheia() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		auto startA = configParam(START_A_PARAM, 0.f, 15.f, 0.f, "Offset A");
-		startA->snapEnabled = true;
-		auto startB = configParam(START_B_PARAM, 0.f, 15.f, 0.f, "Offset B");
-		startB->snapEnabled = true;
+		configParam<OffsetParam>(START_A_PARAM, 0.f, 1.f, 0.f, "Offset A");
+		configParam<OffsetParam>(START_B_PARAM, 0.f, 1.f, 0.f, "Offset B");
+
 		auto lengthA = configParam(LENGTH_A_PARAM, 1.f, 16.f, 1.f, "Length A");
 		lengthA->snapEnabled = true;
 		auto lengthB = configParam(LENGTH_B_PARAM, 1.f, 16.f, 1.f, "Length B");
@@ -133,6 +185,26 @@ struct Stoicheia : Module {
 		outputs[CLOCK_THRU].setVoltage(triggers[CLOCK_INPUT].isHigh() * 10.f);
 	}
 
+	// given offset (in range 0-1), return the offset (based on current length)
+	static int paramToOffset(float param, int length) {
+		return std::round((length - 1) * param);
+	}
+
+	// given an offset (in range 0 - (length -1)), convert to a param in range 0 - 1
+	static float offsetToParam(float offset, int length) {
+		return clamp(offset / (length - 1), 0.f, 1.f);
+	}
+
+	// given fill (in range 0-1), return the fill (based on current length)
+	static int paramToFill(float param, int length) {
+		return 1 + std::round((length - 1) * param);
+	}
+
+	// given an fill (in range 1 - length), convert to a param in range 0 - 1
+	static float fillToParam(float fill, int length) {
+		return clamp((fill - 1) / (length - 1), 0.f, 1.f);
+	}
+
 	void process(const ProcessArgs& args) override {
 
 		if (triggers[RESET_INPUT].process(rescale(inputs[RESET_INPUT].getVoltage(), 0.1f, 2.f, 0.f, 1.f))) {
@@ -145,8 +217,8 @@ struct Stoicheia : Module {
 
 		// update params of sequence A (if changed)
 		currentA.length = params[LENGTH_A_PARAM].getValue();
-		currentA.fill = 1 + std::round((currentA.length - 1) * params[DENSITY_A_PARAM].getValue());
-		currentA.start = params[START_A_PARAM].getValue();
+		currentA.fill = paramToFill(params[DENSITY_A_PARAM].getValue(), currentA.length);
+		currentA.start = paramToOffset(params[START_A_PARAM].getValue(), currentA.length);
 		currentA.mode = static_cast<SequenceMode>(params[MODE_A_PARAM].getValue());
 		if (currentA.length != oldA.length || currentA.fill != oldA.fill) {
 			seq[0].calculate(currentA.length, currentA.fill);
@@ -156,8 +228,8 @@ struct Stoicheia : Module {
 		}
 		// update params of sequence B (if changed)
 		currentB.length = params[LENGTH_B_PARAM].getValue();
-		currentB.fill = 1 + std::round((currentB.length - 1) * params[DENSITY_B_PARAM].getValue());
-		currentB.start = params[START_B_PARAM].getValue();
+		currentB.fill = paramToFill(params[DENSITY_B_PARAM].getValue(), currentB.length);
+		currentB.start = paramToOffset(params[START_B_PARAM].getValue(), currentB.length);
 		currentB.mode = static_cast<SequenceMode>(params[MODE_B_PARAM].getValue());
 		if (currentB.length != oldB.length || currentB.fill != oldB.fill) {
 			seq[1].calculate(currentB.length, currentB.fill);
