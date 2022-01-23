@@ -161,8 +161,8 @@ struct Stoicheia : Module {
 		configParam<FillParam>(DENSITY_A_PARAM, 0.f, 1.f, 0.5f, "Fill density A");
 		configParam<FillParam>(DENSITY_B_PARAM, 0.f, 1.f, 0.5f, "Fill density B");
 		configParam<ABModeParam>(AB_MODE, INDEPENDENT, ALTERNATING, INDEPENDENT, "Sequence mode");
-		configSwitch(MODE_A_PARAM, LATCHED, NORMAL, NORMAL, "Mode A", {"Latched", "Mute", "Normal"});
-		configSwitch(MODE_B_PARAM, LATCHED, NORMAL, NORMAL, "Mode B", {"Latched", "Mute", "Normal"});
+		configSwitch(MODE_A_PARAM, LATCHED, NORMAL, NORMAL, "Mode A", {"Alternating", "Mute", "Trigger"});
+		configSwitch(MODE_B_PARAM, LATCHED, NORMAL, NORMAL, "Mode B", {"Alternating", "Mute", "Trigger"});
 
 		configInput(CLOCK_INPUT, "Clock");
 		configInput(RESET_INPUT, "Reset");
