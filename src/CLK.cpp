@@ -2,7 +2,10 @@
 
 #define min(a,b) ((a)<(b)?(a):(b))
 #define max(a,b) ((a)<(b)?(b):(a))
-typedef uint16_t MasterClockTick;
+
+// Master clock runs using floating point calculations to be as accurate as possible
+typedef float MasterClockTick;
+// subclocks (subdivisions of master) just use integer counting
 typedef uint16_t SubClockTick;
 
 
@@ -29,7 +32,7 @@ public:
 	SubClockTick duty;
 	SubClockTick pos;
 	void setPeriod(SubClockTick ticks, SubClockTick maxDuty) {
-	        duty = min(maxDuty, ticks/2);
+		duty = min(maxDuty, ticks / 2);
 		period = ticks - 1;
 	}
 	void resetPhase() {
@@ -37,7 +40,7 @@ public:
 		on();
 	}
 	void clock() {
-		if (++pos == duty) {
+		if (++pos >= duty) {
 			off();
 		}
 		if (pos > period) {
@@ -71,12 +74,15 @@ public:
 
 	MasterClockTick period;
 	MasterClockTick pos;
-	void setPeriod(MasterClockTick ticks) {
-		period = ticks;
+
+	// clock period in seconds
+	void setPeriod(MasterClockTick period_) {
+		period = period_;
 	}
-	void clock() {
-		if (++pos > period) {
-			pos = 0;
+	void clock(float sampleTime) {
+		pos += sampleTime;
+		if (pos > period) {
+			pos -= period;
 			clockA.clock();
 			clockB.clock();
 			clockC.clock();
@@ -126,13 +132,13 @@ struct CLK : Module {
 		CLOCK_24_LIGHT,
 		LIGHTS_LEN
 	};
-  enum TriggerMode {
-    VCV_MODE,
-    ORIGINAL_MODE,
-    GATE_MODE,
-    OUTPUT_MODE_LEN
-  };
-  
+	enum TriggerMode {
+		TRIGGER_MODE,
+		GATE_MODE,
+		ORIGINAL_MODE,
+		OUTPUT_MODE_LEN
+	};
+
 	MasterClock master;
 
 	SubClockTick mulB = 5;
@@ -140,7 +146,7 @@ struct CLK : Module {
 
 	int modifier8Cached = 0, modifier24Cached = 0;
 	int outputMultiplier = 0;
-	TriggerMode triggerMode = VCV_MODE;
+	TriggerMode triggerMode = TRIGGER_MODE;
 
 	struct Scale8ParamQuantity : ParamQuantity {
 		std::string getDisplayValueString() override {
@@ -167,38 +173,37 @@ struct CLK : Module {
 
 	void process(const ProcessArgs& args) override {
 
-
-		SubClockTick b, c;
-		b = params[SCALE_8_PARAM].getValue();
+		const SubClockTick b = params[SCALE_8_PARAM].getValue();
 		if (b != mulB) {
 			mulB = b;
 			master.resetB = true;
 		}
-		c = params[SCALE_24_PARAM].getValue();
+		const SubClockTick c = params[SCALE_24_PARAM].getValue();
 		if (c != mulC) {
 			mulC = c;
 			master.resetC = true;
 		}
 
-		// length of a tick of the master clock
-		uint32_t scale = (1 << outputMultiplier);
-		double tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
-		uint32_t ticks = args.sampleRate * tickTime;
+		// context menu allows x1, x2, x4, x8, x16 - this applies that factor
+		const uint32_t scale = (1 << outputMultiplier);
+		// length of a tick of the master clock (which runs at x48 to make mult/division easier,
+		// and which includes above scale)
+		const float tickTime = 1. / (scale * 48. * params[BPM_PARAM].getValue() / 60.);
 
 		// master clock, running at 48x intended BPM
-		master.setPeriod(ticks);
-		uint16_t maxDuty;
-		switch(triggerMode){
-		case ORIGINAL_MODE:
-		  maxDuty = 48 >> 1;
-		  break;
-		case GATE_MODE:
-		  maxDuty = INT16_MAX;
-		  break;
-		case VCV_MODE:
-		default:
-		  maxDuty = max(1, (1e-3 / tickTime) / 48);
-		  break;
+		master.setPeriod(tickTime);
+		float maxDuty;
+		switch (triggerMode) {
+			case ORIGINAL_MODE:
+				maxDuty = 48 >> 1;
+				break;
+			case GATE_MODE:
+				maxDuty = INT16_MAX;
+				break;
+			case TRIGGER_MODE:
+			default:
+				maxDuty = max(1, (1e-3 / tickTime) / 48);
+				break;
 		}
 
 		// A ticks every 48 master clock ticks
@@ -206,7 +211,7 @@ struct CLK : Module {
 		master.clockB.setPeriod(B_MULTIPLIERS[b], maxDuty);
 		master.clockC.setPeriod(C_MULTIPLIERS[c], maxDuty);
 
-		master.clock();
+		master.clock(args.sampleTime);
 
 		outputs[MAIN_OUTPUT].setVoltage(10.f * master.clockA.isOn());
 		outputs[CLOCK_8_OUTPUT].setVoltage(10.f * master.clockB.isOn());
@@ -220,11 +225,11 @@ struct CLK : Module {
 	void dataFromJson(json_t* rootJ) override {
 		json_t* multiplier = json_object_get(rootJ, "multiplier");
 		if (multiplier) {
-		  outputMultiplier = json_integer_value(multiplier);
+			outputMultiplier = json_integer_value(multiplier);
 		}
 		json_t* modeJ = json_object_get(rootJ, "mode");
 		if (modeJ) {
-		  triggerMode = (TriggerMode)json_integer_value(modeJ);
+			triggerMode = (TriggerMode)json_integer_value(modeJ);
 		}
 	}
 
@@ -264,7 +269,7 @@ struct CLKWidget : ModuleWidget {
 		assert(module);
 
 		menu->addChild(createIndexPtrSubmenuItem("Output multiplier",	{"x1", "x2", "x4", "x8", "x16"}, &module->outputMultiplier));
-		menu->addChild(createIndexPtrSubmenuItem("Trigger mode", {"VCV", "Original", "Gate"}, &module->triggerMode));
+		menu->addChild(createIndexPtrSubmenuItem("Trigger mode", {"Trigger", "Gate", "Original"}, &module->triggerMode));
 
 	}
 };
