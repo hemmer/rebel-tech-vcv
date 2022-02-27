@@ -218,6 +218,9 @@ struct Logoi : Module {
 		LIGHTS_LEN
 	};
 
+	ModuleTheme theme = LIGHT_THEME;
+
+
 	dsp::SchmittTrigger clockDetector, resetDetector;
 	dsp::BooleanTrigger fallDetector;
 
@@ -431,13 +434,28 @@ struct Logoi : Module {
 			}
 		}
 	}
+
+	void dataFromJson(json_t* rootJ) override {
+		json_t* themeJ = json_object_get(rootJ, "theme");
+		if (themeJ) {
+			theme = (ModuleTheme) json_integer_value(themeJ);
+		}
+	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "theme", json_integer(theme));
+
+		return rootJ;
+	}
+
 };
 
 
 struct LogoiWidget : ModuleWidget {
 	LogoiWidget(Logoi* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/Logoi.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Logoi.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));

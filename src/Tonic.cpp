@@ -25,7 +25,8 @@ struct Tonic : Module {
 	static constexpr float semitone = 1.f / 12.f;    // one semitone is a 1/12 volt
 
 	const int numSemitones[6] = {0, 16, 8, 4, 2, -1};
-
+    ModuleTheme theme = LIGHT_THEME;
+	
 	Tonic() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(SCALE_PARAM, -6.f, 12.f, 0.f, "Scale");
@@ -66,6 +67,20 @@ struct Tonic : Module {
 		outputs[GATE_OUTPUT].setVoltage(10.f * globalState);
 		outputs[CV_OUTPUT].setVoltage(voltage);
 	}
+
+	void dataFromJson(json_t* rootJ) override {
+		json_t* themeJ = json_object_get(rootJ, "theme");
+		if (themeJ) {
+			theme = (ModuleTheme) json_integer_value(themeJ);
+		}
+	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "theme", json_integer(theme));
+
+		return rootJ;
+	}
 };
 
 struct TonicButton : app::SvgSwitch {
@@ -79,7 +94,7 @@ struct TonicButton : app::SvgSwitch {
 struct TonicWidget : ModuleWidget {
 	TonicWidget(Tonic* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/Tonic.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Tonic.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));

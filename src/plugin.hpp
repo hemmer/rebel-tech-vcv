@@ -15,15 +15,22 @@ extern Model* modelCLK;
 extern Model* modelLogoi;
 extern Model* modelPhoreo;
 
+enum ModuleTheme {
+	LIGHT_THEME,
+	DARK_THEME,
+	NUM_THEMES
+};
+
+
 struct BefacoOutputPort : app::SvgPort {
 	BefacoOutputPort() {
-		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BefacoOutputPort.svg")));
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BefacoOutputPort.svg")));
 	}
 };
 
 struct BefacoInputPort : app::SvgPort {
 	BefacoInputPort() {
-		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/BefacoInputPort.svg")));
+		setSvg(APP->window->loadSvg(asset::plugin(pluginInstance, "res/components/BefacoInputPort.svg")));
 	}
 };
 
@@ -37,8 +44,8 @@ struct RebelTechPot : app::SvgKnob {
 		bg = new widget::SvgWidget;
 		fb->addChildBelow(bg, tw);
 
-		setSvg(Svg::load(asset::plugin(pluginInstance, "res/Pot.svg")));
-		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/Pot_bg.svg")));
+		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Pot.svg")));
+		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Pot_bg.svg")));
 	}
 };
 

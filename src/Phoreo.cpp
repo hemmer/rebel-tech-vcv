@@ -178,6 +178,8 @@ struct Phoreo : Module {
 
 	dsp::SchmittTrigger clockTriggers[3];
 
+	ModuleTheme theme = LIGHT_THEME;
+
 	Phoreo() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 		configParam(MOD_PARAM, 0.f, 100.f, 50.f, "Pulse width", "%");
@@ -262,13 +264,27 @@ struct Phoreo : Module {
 		dur.reset();
 		rep.reset();
 	}
+
+	void dataFromJson(json_t* rootJ) override {
+		json_t* themeJ = json_object_get(rootJ, "theme");
+		if (themeJ) {
+			theme = (ModuleTheme) json_integer_value(themeJ);
+		}
+	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "theme", json_integer(theme));
+
+		return rootJ;
+	}
 };
 
 
 struct PhoreoWidget : ModuleWidget {
 	PhoreoWidget(Phoreo* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/Phoreo.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Phoreo.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));

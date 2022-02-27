@@ -147,6 +147,7 @@ struct Stoicheia : Module {
 	int activeSequence = 0;
 	int combinedSequencePosition = 0;
 	SequenceParams oldA, currentA, oldB, currentB;
+	ModuleTheme theme = LIGHT_THEME;
 
 	Stoicheia() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -319,6 +320,20 @@ struct Stoicheia : Module {
 		outputs[CLOCK_THRU].setVoltage(triggers[CLOCK_INPUT].isHigh() * 10.f);
 
 	}
+
+	void dataFromJson(json_t* rootJ) override {
+		json_t* themeJ = json_object_get(rootJ, "theme");
+		if (themeJ) {
+			theme = (ModuleTheme) json_integer_value(themeJ);
+		}
+	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "theme", json_integer(theme));
+
+		return rootJ;
+	}
 };
 
 
@@ -326,7 +341,7 @@ struct Stoicheia : Module {
 struct StoicheiaWidget : ModuleWidget {
 	StoicheiaWidget(Stoicheia* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/Stoicheia.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Stoicheia.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));

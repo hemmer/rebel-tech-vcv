@@ -66,6 +66,7 @@ struct Klasmata : Module {
 	dsp::SchmittTrigger clockTrigger;
 	dsp::SchmittTrigger resetTrigger;
 	bool state, stateAlternating = false;
+	ModuleTheme theme = LIGHT_THEME;
 
 	Klasmata() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
@@ -153,15 +154,29 @@ struct Klasmata : Module {
 		lights[OUT_LIGHT].setBrightness(out / 10.f);
 		lights[IN_LIGHT].setBrightness(in / 10.f);
 		oldParams = currentParams;
-
 	}
+
+	void dataFromJson(json_t* rootJ) override {
+		json_t* themeJ = json_object_get(rootJ, "theme");
+		if (themeJ) {
+			theme = (ModuleTheme) json_integer_value(themeJ);
+		}
+	}
+
+	json_t* dataToJson() override {
+		json_t* rootJ = json_object();
+		json_object_set_new(rootJ, "theme", json_integer(theme));
+
+		return rootJ;
+	}
+
 };
 
 
 struct KlasmataWidget : ModuleWidget {
 	KlasmataWidget(Klasmata* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/Klasmata.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Klasmata.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));

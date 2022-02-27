@@ -160,6 +160,7 @@ struct CLK : Module {
 			return C_STRINGS[clamp(index, 0, 10)];
 		}
 	};
+	ModuleTheme theme = LIGHT_THEME;
 
 	CLK() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
@@ -231,11 +232,16 @@ struct CLK : Module {
 		if (modeJ) {
 			triggerMode = (TriggerMode)json_integer_value(modeJ);
 		}
+		json_t* themeJ = json_object_get(rootJ, "theme");
+		if (themeJ) {
+			theme = (ModuleTheme) json_integer_value(themeJ);
+		}
 	}
 
 	json_t* dataToJson() override {
 		json_t* rootJ = json_object();
 		json_object_set_new(rootJ, "multiplier", json_integer(outputMultiplier));
+		json_object_set_new(rootJ, "theme", json_integer(theme));
 		json_object_set_new(rootJ, "mode", json_integer(triggerMode));
 
 		return rootJ;
@@ -246,7 +252,7 @@ struct CLK : Module {
 struct CLKWidget : ModuleWidget {
 	CLKWidget(CLK* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/CLK.svg")));
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/CLK.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
@@ -270,7 +276,6 @@ struct CLKWidget : ModuleWidget {
 
 		menu->addChild(createIndexPtrSubmenuItem("Output multiplier",	{"x1", "x2", "x4", "x8", "x16"}, &module->outputMultiplier));
 		menu->addChild(createIndexPtrSubmenuItem("Trigger mode", {"Trigger", "Gate", "Original"}, &module->triggerMode));
-
 	}
 };
 
