@@ -1,9 +1,9 @@
 [![workflow](https://github.com/hemmer/rebel-tech-vcv/actions/workflows/build-plugin.yml/badge.svg)](https://github.com/hemmer/rebel-tech-vcv/actions/workflows/build-plugin.yml)
-[![License](https://img.shields.io/pypi/l/fpvgcc.svg)](https://opensource.org/licenses/GPL-3.0)
+[![License](https://img.shields.io/badge/license-GPLv2--or--later-blue)](https://opensource.org/licenses/GPL-2.0)
 
 This repo contains VCV ports of Rebel Technology Eurorack modules. See: https://www.rebeltech.org/ and https://github.com/pingdynasty/.
 
-License: GPL-3.0-only 
+License: GPL-2.0-or-later 
 
 ## Screenshots
 
