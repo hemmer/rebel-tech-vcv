@@ -86,8 +86,8 @@ struct Tonic : Module {
 struct TonicButton : app::SvgSwitch {
 	TonicButton() {
 		momentary = true;
-		addFrame(Svg::load(asset::plugin(pluginInstance, "res/TonicButton_0.svg")));
-		addFrame(Svg::load(asset::plugin(pluginInstance, "res/TonicButton_1.svg")));
+		addFrame(Svg::load(asset::plugin(pluginInstance, "res/components/TonicButton_0.svg")));
+		addFrame(Svg::load(asset::plugin(pluginInstance, "res/components/TonicButton_1.svg")));
 	}
 };
 
