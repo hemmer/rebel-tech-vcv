@@ -28,14 +28,13 @@ struct Klasmata : Module {
 		NUM_LIGHTS
 	};
 
-	struct FillParam : ParamQuantity {
-		// effective number of fills will depend on on the sequence length
+	struct OffsetParam : ParamQuantity {
+		// effective offset will depend on on the sequence length
 		std::string getDisplayValueString() override {
 			if (module != nullptr) {
-				if (paramId == DENSITY_PARAM) {
-					int lengthA = module->params[LENGTH_PARAM].getValue();
-					int fillValue = 1 + std::round(getValue() * (lengthA - 1));
-					return std::to_string(fillValue);
+				if (paramId == OFFSET_PARAM) {
+					int offset = paramToOffset(getValue(), module->params[LENGTH_PARAM].getValue());
+					return std::to_string(offset);
 				}
 				else {
 					assert(false);
@@ -43,6 +42,50 @@ struct Klasmata : Module {
 			}
 			else {
 				return "";
+			}
+		}
+
+		void setDisplayValueString(std::string s) override {
+			float offset = std::atof(s.c_str());
+			if (module != nullptr) {
+				if (paramId == OFFSET_PARAM) {
+					int length = module->params[LENGTH_PARAM].getValue();
+					ParamQuantity::setValue(offsetToParam(offset, length));
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
+	};
+
+	struct FillParam : ParamQuantity {
+		// effective number of fills will depend on on the sequence length
+		std::string getDisplayValueString() override {
+			if (module != nullptr) {
+				if (paramId == DENSITY_PARAM) {
+					int length = module->params[LENGTH_PARAM].getValue();
+					return std::to_string(paramToFill(getValue(), length));
+				}
+				else {
+					assert(false);
+				}
+			}
+			else {
+				return "";
+			}
+		}
+
+		void setDisplayValueString(std::string s) override {
+			int fill = std::atof(s.c_str());
+			if (module != nullptr) {
+				if (paramId == DENSITY_PARAM) {
+					int length = module->params[LENGTH_PARAM].getValue();
+					ParamQuantity::setValue(fillToParam(fill, length));
+				}
+				else {
+					assert(false);
+				}
 			}
 		}
 	};
@@ -70,8 +113,8 @@ struct Klasmata : Module {
 
 	Klasmata() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		auto offsetParam = configParam(OFFSET_PARAM, 0.f, 31.f, 0.f, "Offset");
-		offsetParam->snapEnabled = true;
+		configParam<OffsetParam>(OFFSET_PARAM, 0.f, 1.f, 0.f, "Offset");
+
 		auto lengthParam = configParam(LENGTH_PARAM, 1.f, 32.f, 1.f, "Length");
 		lengthParam->snapEnabled = true;
 
@@ -116,9 +159,9 @@ struct Klasmata : Module {
 			// knob + CV gives a density in range [0, 1]
 			const float density = clamp(fillCV + params[DENSITY_PARAM].getValue(), 0.f, 1.0f);
 			// fill is then the this fraction of length
-			currentParams.fill = 1 + std::round((currentParams.length - 1) * density);
+			currentParams.fill = paramToFill(density, currentParams.length);
 
-			currentParams.start = params[OFFSET_PARAM].getValue();
+			currentParams.start = paramToOffset(params[OFFSET_PARAM].getValue(), currentParams.length);
 			currentParams.mode = static_cast<SequenceMode>(params[SWITCH_PARAM].getValue());
 		}
 
@@ -169,7 +212,6 @@ struct Klasmata : Module {
 
 		return rootJ;
 	}
-
 };
 
 

@@ -49,10 +49,28 @@ struct RebelTechPot : app::SvgKnob {
 	}
 };
 
-
-
 struct Davies1900hWhiteKnobSnap : Davies1900hWhiteKnob {
 	Davies1900hWhiteKnobSnap() {
 		snap = true;
 	}
 };
+
+// given offset (in range 0-1), return the offset (based on current length)
+inline int paramToOffset(float param, int length) {
+	return std::round((length - 1) * param);
+}
+
+// given an offset (in range 0 - (length-1)), convert to a param in range 0 - 1
+inline float offsetToParam(float offset, int length) {
+	return clamp(offset / (length - 1), 0.f, 1.f);
+}
+
+// given fill (in range 0-1), return the fill (based on current length)
+inline int paramToFill(float param, int length) {
+	return 1 + std::round((length - 1) * param);
+}
+
+// given an fill (in range 1 - length), convert to a param in range 0 - 1
+inline float fillToParam(float fill, int length) {
+	return clamp((fill - 1) / (length - 1), 0.f, 1.f);
+}
