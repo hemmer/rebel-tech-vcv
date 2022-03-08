@@ -15,7 +15,7 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:ns="&amp;#38;#38;#38;#38;#38;#38;#38;#38;#38;#38;ns_ai;">
+   xmlns:ns="&amp;#38;#38;#38;#38;#38;#38;#38;#38;#38;#38;#38;ns_ai;">
   <metadata
      id="metadata34">
     <rdf:RDF>
@@ -32,13 +32,13 @@
      inkscape:document-units="mm"
      units="mm"
      showgrid="false"
-     inkscape:zoom="1.1919535"
-     inkscape:cx="28.105123"
-     inkscape:cy="309.15636"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="-20.85965"
+     inkscape:cy="251.37646"
      inkscape:window-width="1333"
      inkscape:window-height="1081"
      inkscape:window-x="1234"
-     inkscape:window-y="95"
+     inkscape:window-y="67"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
@@ -134,14 +134,14 @@
        width="20"
        height="128.5"
        id="rect2081"
-       style="display:inline;fill:#ffffff;stroke:#ff0000;stroke-width:0.05;fill-opacity:1" />
+       style="display:inline;fill:#ffffff;stroke:none;stroke-width:0.05;fill-opacity:1" />
     <rect
        x="-1.1010195e-06"
        y="5.583496e-07"
        width="20"
        height="128.5"
        id="rect2081-3"
-       style="display:inline;fill:url(#linearGradient5763);fill-opacity:1;stroke:#ff0000;stroke-width:0.05" />
+       style="display:inline;fill:url(#linearGradient5763);fill-opacity:1;stroke:none;stroke-width:0.05" />
     <g
        id="g150_12_"
        transform="matrix(0.35277777,0,0,0.35277777,-27.588546,-84.305084)" />
