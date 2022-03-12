@@ -20,7 +20,7 @@ struct Tonic : Module {
 		NUM_LIGHTS
 	};
 
-	bool states[6];
+	bool states[6] = {};
 	dsp::SchmittTrigger triggers[6];
 	static constexpr float semitone = 1.f / 12.f;    // one semitone is a 1/12 volt
 
@@ -29,7 +29,7 @@ struct Tonic : Module {
 	
 	Tonic() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
-		configParam(SCALE_PARAM, -6.f, 12.f, 0.f, "Scale");
+		configParam(SCALE_PARAM, -6.f, 12.f, 0.f, "Custom offset", " semitones");
 
 		configButton(BUTTON, "Add N semitones");
 		configInput(GATE_INPUT, "Add N semitones gate");

@@ -28,9 +28,9 @@ public:
 		master = master_;
 	}
 
-	SubClockTick period;
-	SubClockTick duty;
-	SubClockTick pos;
+	SubClockTick period = 0;
+	SubClockTick duty = 0;
+	SubClockTick pos = 0;
 	void setPeriod(SubClockTick ticks, SubClockTick maxDuty) {
 		duty = min(maxDuty, ticks / 2);
 		period = ticks - 1;
@@ -72,8 +72,8 @@ public:
 
 	}
 
-	MasterClockTick period;
-	MasterClockTick pos;
+	MasterClockTick period = 0.f;
+	MasterClockTick pos = 0.f;
 
 	// clock period in seconds
 	void setPeriod(MasterClockTick period_) {

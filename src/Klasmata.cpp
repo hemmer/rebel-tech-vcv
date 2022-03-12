@@ -97,9 +97,9 @@ struct Klasmata : Module {
 	};
 
 	struct SequenceParams {
-		int length;
-		int fill;
-		int start;
+		int length = -1;
+		int fill = -1;
+		int start = -1;
 		SequenceMode mode;
 	};
 

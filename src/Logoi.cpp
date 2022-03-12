@@ -19,8 +19,8 @@ struct Logoi : Module {
 			return false;
 		}
 
-		uint8_t pos;
-		uint8_t value;
+		uint8_t pos = 0;
+		uint8_t value = 0;
 
 		void rise() {
 			if (next())
@@ -63,9 +63,9 @@ struct Logoi : Module {
 			return false;
 		}
 
-		uint8_t pos;
-		int8_t value;
-		bool toggled;
+		uint8_t pos = 0;
+		int8_t value = 0;
+		bool toggled = false;
 		inline bool isOff() {
 			return dividedOutput->getVoltage() == 0;
 		}
@@ -98,11 +98,11 @@ struct Logoi : Module {
 
 	class ClockDelay {
 	public:
-		uint16_t riseMark;
-		uint16_t fallMark;
-		uint16_t value; 	// number of (pseudo) clock ticks until rise should happen
-		uint16_t pos;
-		bool running;
+		uint16_t riseMark = 0;
+		uint16_t fallMark = 0;
+		uint16_t value = 0; 	// number of (pseudo) clock ticks until rise should happen
+		uint16_t pos = 0;
+		bool running = false;
 		inline void start() {
 			pos = 0;
 			fallMark = 0;
@@ -238,6 +238,7 @@ struct Logoi : Module {
 
 	DividingCounter divcounter;		// used to combine left+right (when right in count mode)
 	ClockSwing swinger;				// used to combine left+right (when right in delay mode)
+	static constexpr float maxDelayTime = 1.f;
 
 	enum OperatingMode {
 		COUNT_MODE,
@@ -253,11 +254,77 @@ struct Logoi : Module {
 		swinger.reset();
 	}
 
-	Logoi() {
+	struct DividerParam : ParamQuantity {
+		std::string getDisplayValueString() override {
+			if (module != nullptr) {
+				if (paramId == DIVISION_PARAM) {
+					int divisionForLabel = divisionFromParamUser(getValue());
+					return std::to_string(divisionForLabel);
+				}
+				else {
+					assert(false);
+				}
+			}
+			else {
+				return "";
+			}
+		}
 
+		void setDisplayValueString(std::string s) override {
+			float division = std::atof(s.c_str());
+			if (module != nullptr) {
+				if (paramId == DIVISION_PARAM) {
+					ParamQuantity::setValue(paramFromDivisionUser(division));
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
+	};
+
+	struct CountOrDelayParam : ParamQuantity {
+		std::string getDisplayValueString() override {
+			if (module != nullptr) {
+				if (paramId == COUNT_OR_DELAY_PARAM) {
+					const int mode = module->params[MODE_PARAM].getValue();
+					switch (mode) {
+						case DELAY_MODE: return std::to_string(delayFromParamUser(getValue())) + " ms";
+						case COUNT_MODE: return std::to_string(countFromParamUser(getValue()));
+						default: return "Not in use";
+					}
+				}
+				else {
+					assert(false);
+				}
+			}
+			else {
+				return "";
+			}
+		}
+
+		void setDisplayValueString(std::string s) override {
+			float value = std::atof(s.c_str());
+			if (module != nullptr) {
+				if (paramId == COUNT_OR_DELAY_PARAM) {
+					const int mode = module->params[MODE_PARAM].getValue();
+					switch (mode) {
+						case DELAY_MODE: ParamQuantity::setValue(paramFromDelayUser(value)); break;
+						case COUNT_MODE: ParamQuantity::setValue(paramFromCountUser(value)); break;
+						default: ParamQuantity::setValue(value);
+					}
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
+	};
+
+	Logoi() {
 		config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-		configParam(DIVISION_PARAM, 0.f, 1.f, 0.f, "Divider");
-		configParam(COUNT_OR_DELAY_PARAM, 0.f, 1.f, 0.f, "Counter/Delay");
+		configParam<DividerParam>(DIVISION_PARAM, 0.f, 1.f, 0.f, "Divider");
+		configParam<CountOrDelayParam>(COUNT_OR_DELAY_PARAM, 0.f, 1.f, 0.f, "Counter/Delay");
 
 		configParam(DIVISION_CV_PARAM, 0.f, 1.f, 0.f, "Divider CV");
 		configParam(COUNT_OR_DELAY_CV_PARAM, 0.f, 1.f, 0.f, "Counter/Delay CV");
@@ -288,30 +355,50 @@ struct Logoi : Module {
 		updateClocksController.setDivision(updateClocksFrequency);
 	}
 
-	// given VCV param in range 0 - 1, convert to the expected division (for left hand side)
-	static int8_t divisionFromParam(float paramValue) {
+	// given VCV param in range 0 - 1, convert to the expected division (for the algorithm)
+	static int8_t divisionFromParamInternal(float paramValue) {
+		return (paramValue < 1. / 64.f) ? -1 : (int)(paramValue * 31.f);
+	}
+	// given VCV param in range 0 - 1, convert to the expected division (in a form meaningful for the user)
+	static int8_t divisionFromParamUser(float paramValue) {
+		const int8_t divisionInternal = divisionFromParamInternal(paramValue);
+		return divisionInternal == -1 ? 1 : (2 * (1 + divisionInternal));
+	}
+	// given a clock division from the user, convert to the param value (0 - 1)
+	static float paramFromDivisionUser(int division) {
+		int divisionInternal = (division == 1) ? -1 : (division / 2 - 1);
+		return rescale(clamp(divisionInternal, -1, 31), -1.f, 31.f, 0.f, 1.f);
+	}
 
-		constexpr int  ADC_OVERSAMPLING = 4;
-		constexpr int  ADC_VALUE_RANGE = (1024 * ADC_OVERSAMPLING);
-
-		// the raw (oversampled) value that ATMEGA would return
-		int v = std::round(paramValue * 4095);
-
-		return (v < (ADC_VALUE_RANGE / 32 / 2)) ? -1 : v >> 7;;
+	// given VCV param in range 0 - 1, convert to the expected count (for the algorithm)
+	static int8_t countFromParamInternal(float paramValue) {
+		return std::round(31 * paramValue);
+	}
+	// given VCV param in range 0 - 1, convert to the expected count (for the algorithm)
+	static int8_t countFromParamUser(float paramValue) {
+		return 1 + countFromParamInternal(paramValue);
 	}
 
 	// given VCV param in range 0 - 1, convert to the expected count (for right hand side)
-	static int8_t countFromParam(float paramValue) {
-
-		return std::round(31 * paramValue);
+	static float paramFromCountUser(float count) {
+		count = clamp(count, 1.f, 32.f);
+		return clamp((count - 1) / 31.f, 0.f, 1.f);
 	}
 
-	// given VCV param in range 0 - 1, convert to the expected delay (for right hand side)
-	uint16_t delayFromParam(float paramValue) {
+	static float delayFromParamUser(float paramValue) {
+		return maxDelayTime * 1000.f * paramValue;
+	}
+
+	static float paramFromDelayUser(float delay) {
+		return delay / (maxDelayTime * 1000.f);
+	}
+
+
+	// given VCV param in range 0 - 1, convert to the expected delay (for the algorithm)
+	uint16_t delayFromParamInternal(float paramValue) {
 		// max Rack sample rate is 768kHz - with updateClocksFrequency == 64, which means we ping the clocks,
 		// delay.clock() and swinger.clock() every 64 samples, the largest reasonable value
 		// of maxClockTicks is 12000. Tick counter of type uint16_t [0, +65535] shouldn't overflow.
-		const float maxDelayTime = 1.f;
 		const float maxClockTicks = (maxDelayTime / APP->engine->getSampleTime()) / updateClocksFrequency;
 
 		return 1 + std::round(maxClockTicks * paramValue);
@@ -333,7 +420,7 @@ struct Logoi : Module {
 			const float scaledDivisionCV = clamp(params[DIVISION_CV_PARAM].getValue() * inputs[DIVISION_CV_INPUT].getVoltage(), -10.f, +10.f);
 			// CV sums with knob, where +10V is equivalent to full clockwise knob turn
 			const float divisionWithCV = clamp(params[DIVISION_PARAM].getValue() + scaledDivisionCV / 10.f, 0.f, 1.f);
-			divider.value = divisionFromParam(divisionWithCV);
+			divider.value = divisionFromParamInternal(divisionWithCV);
 		}
 		// process RHS knobs
 		{
@@ -342,8 +429,8 @@ struct Logoi : Module {
 			// CV sums with knob, where +10V is equivalent to full clockwise knob turn
 			const float countDelayWithCV = clamp(params[COUNT_OR_DELAY_PARAM].getValue() + scaledCountDelayCV / 10.f, 0.f, 1.f);
 			// mode RHS modes infer params from the same source(s)
-			divcounter.value = counter.value = countFromParam(countDelayWithCV);
-			delay.value = swinger.value = delayFromParam(countDelayWithCV);
+			divcounter.value = counter.value = countFromParamInternal(countDelayWithCV);
+			delay.value = swinger.value = delayFromParamInternal(countDelayWithCV);
 		}
 
 		if (resetDetector.process(inputs[RESET_INPUT].getVoltage())) {
@@ -357,6 +444,11 @@ struct Logoi : Module {
 		}
 
 		const int mode = (int) params[MODE_PARAM].getValue();
+		switch (mode) {
+			case DELAY_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Delay"; break;
+			case COUNT_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Count"; break;
+			case DISABLED_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Off"; break;
+		}
 
 		// Schmitt trigger on incoming clock
 		const bool rising = clockDetector.process(inputs[CLOCK_INPUT].getVoltage());
