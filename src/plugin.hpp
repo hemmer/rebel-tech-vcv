@@ -74,3 +74,5 @@ inline int paramToFill(float param, int length) {
 inline float fillToParam(float fill, int length) {
 	return clamp((fill - 1) / (length - 1), 0.f, 1.f);
 }
+
+typedef rack::dsp::TSchmittTrigger<simd::float_4> SchmittTrigger4;

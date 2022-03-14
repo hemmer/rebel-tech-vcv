@@ -1,5 +1,7 @@
 #include "plugin.hpp"
 
+using namespace simd;
+
 struct Tonic : Module {
 	enum ParamIds {
 		SCALE_PARAM,
@@ -16,17 +18,16 @@ struct Tonic : Module {
 		NUM_OUTPUTS
 	};
 	enum LightIds {
-		ENUMS(LED, 6),
+		ENUMS(LED, 6 * 3), 	// 6 LEDS x RGB (3)
 		NUM_LIGHTS
 	};
 
-	bool states[6] = {};
-	dsp::SchmittTrigger triggers[6];
+	SchmittTrigger4 triggers[6][4];
 	static constexpr float semitone = 1.f / 12.f;    // one semitone is a 1/12 volt
 
 	const int numSemitones[6] = {0, 16, 8, 4, 2, -1};
-    ModuleTheme theme = LIGHT_THEME;
-	
+	ModuleTheme theme = LIGHT_THEME;
+
 	Tonic() {
 		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(SCALE_PARAM, -6.f, 12.f, 0.f, "Custom offset", " semitones");
@@ -45,27 +46,63 @@ struct Tonic : Module {
 
 	void process(const ProcessArgs& args) override {
 
-		bool globalState = false;
-		float voltage = 0.f;
+		int numPolyphonyEngines = 1;
 		for (int i = 0; i < ParamIds::BUTTON_LAST; ++i) {
-			
-			triggers[i].process(inputs[GATE_INPUT + i].getVoltage());
-			states[i] = params[BUTTON + i].getValue() || triggers[i].isHigh();
-
-			if (i == 0) {
-				int semitonesForScale = std::round(params[SCALE_PARAM].getValue());
-				voltage += semitone * semitonesForScale * states[i];
-			}
-			else {
-				voltage += semitone * numSemitones[i] * states[i];
-			}
-
-			globalState = globalState || states[i];
-			lights[LED + i].setBrightness(states[i]);
+			numPolyphonyEngines = std::max(numPolyphonyEngines, inputs[i].getChannels());
 		}
 
-		outputs[GATE_OUTPUT].setVoltage(10.f * globalState);
-		outputs[CV_OUTPUT].setVoltage(voltage);
+		float_4 globalState[4] = {};	// gate per polyphony channel (max 16)
+		float_4 voltage[4] = {};		// cv per polyphony channel (max 16)
+
+		for (int i = 0; i < ParamIds::BUTTON_LAST; ++i) {
+
+			float stateForLight = 0.f;
+			// process polyphony in blocks of 4 channels (simd)
+			for (int c = 0; c < numPolyphonyEngines; c += 4) {
+
+				// the state for offset i is determined by (Schmitt trigger high OR button)
+				triggers[i][c / 4].process(inputs[GATE_INPUT + i].getVoltageSimd<float_4>(c));
+				float_4 state = simd::ifelse(triggers[i][c / 4].isHigh(), 1.f, params[BUTTON + i].getValue());
+
+				// top gate is custom offset
+				if (i == 0) {
+					int semitonesForScale = std::round(params[SCALE_PARAM].getValue());
+					voltage[c / 4] += semitone * semitonesForScale * state;
+				}
+				else {
+					voltage[c / 4] += semitone * numSemitones[i] * state;
+				}
+
+				globalState[c / 4] = ifelse(globalState[c / 4], globalState[c / 4], state);
+
+				// SSE3 simd: put sum in all elements, https://stackoverflow.com/a/6996992/251715
+				state.v = _mm_hadd_ps(state.v, state.v);
+				state.v = _mm_hadd_ps(state.v, state.v);
+				stateForLight += state[0];
+			}
+			stateForLight /= numPolyphonyEngines;
+
+			if (numPolyphonyEngines == 1) {
+				// mono is yellow (like the hardware)
+				lights[LED + 3 * i + 0].setBrightness(stateForLight);
+				lights[LED + 3 * i + 1].setBrightness(stateForLight * 0.839);
+				lights[LED + 3 * i + 2].setBrightness(stateForLight * 0.0781);
+			}
+			else {
+				// poly is blue
+				lights[LED + 3 * i + 0].setBrightness(0);
+				lights[LED + 3 * i + 1].setBrightness(0);
+				lights[LED + 3 * i + 2].setBrightness(stateForLight);
+			}
+		}
+
+		// set outputs
+		for (int c = 0; c < numPolyphonyEngines; c += 4) {
+			outputs[CV_OUTPUT].setVoltageSimd<float_4>(voltage[c / 4], c);
+			outputs[GATE_OUTPUT].setVoltageSimd<float_4>(10.f * globalState[c / 4], c);
+		}
+		outputs[GATE_OUTPUT].setChannels(numPolyphonyEngines);
+		outputs[CV_OUTPUT].setChannels(numPolyphonyEngines);
 	}
 
 	void dataFromJson(json_t* rootJ) override {
@@ -117,12 +154,12 @@ struct TonicWidget : ModuleWidget {
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(7.451, 108.725)), module, Tonic::GATE_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(22.645, 108.725)), module, Tonic::CV_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 32.493)), module, Tonic::LED + 0));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 45.196)), module, Tonic::LED + 1));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 57.899)), module, Tonic::LED + 2));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 70.602)), module, Tonic::LED + 3));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 83.304)), module, Tonic::LED + 4));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(15.025, 96.007)), module, Tonic::LED + 5));
+		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 32.493)), module, Tonic::LED + 0 * 3));
+		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 45.196)), module, Tonic::LED + 1 * 3));
+		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 57.899)), module, Tonic::LED + 2 * 3));
+		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 70.602)), module, Tonic::LED + 3 * 3));
+		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 83.304)), module, Tonic::LED + 4 * 3));
+		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 96.007)), module, Tonic::LED + 5 * 3));
 	}
 };
 

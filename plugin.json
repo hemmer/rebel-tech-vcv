@@ -18,6 +18,7 @@
       "name": "Stoicheia",
       "description": "Dual Euclidean Sequencer",
       "modularGridUrl": "https://www.modulargrid.net/e/rebel-technology-stoicheia",
+      "manualUrl": "https://www.rebeltech.org/product/stoicheia/",
       "tags": [
         "Clock modulator",
         "Dual",
@@ -30,9 +31,11 @@
       "name": "Tonic",
       "description": "Additive Interval Sequencer",
       "modularGridUrl": "https://www.modulargrid.net/e/rebel-technology-tonic",
+      "manualUrl": "https://www.rebeltech.org/product/tonic/",
       "tags": [
         "Sequencer",
-        "Hardware clone"
+        "Hardware clone",
+        "Polyphonic"
       ]
     },
     {
@@ -40,6 +43,7 @@
       "name": "Klasmata",
       "description": "Voltage controlled Euclidean sequencer",
       "modularGridUrl": "https://www.modulargrid.net/e/rebel-technology-klasmata",
+      "manualUrl": "https://www.rebeltech.org/product/klasmata/",
       "tags": [
         "Clock modulator",
         "Sequencer",
@@ -51,6 +55,7 @@
       "name": "CLK",
       "description": "Triple clock generator that produces synchronised clock signals",
       "modularGridUrl": "https://www.modulargrid.net/e/rebel-technology-clk",
+      "manualUrl": "https://www.rebeltech.org/product/clk/",
       "tags": [
         "Clock generator",
         "Clock modulator",
@@ -62,6 +67,7 @@
       "name": "Logoi",
       "description": "Voltage controlled clock divider, counter, and delay",
       "modularGridUrl": "https://www.modulargrid.net/e/rebel-technology-logoi",
+      "manualUrl": "https://www.rebeltech.org/product/logoi/",
       "tags": [
         "Clock modulator",
         "Delay",
@@ -73,6 +79,7 @@
       "name": "Phoreo",
       "description": "Trigger modulator, multiplier and repeater",
       "modularGridUrl": "https://www.modulargrid.net/e/rebel-technology-phoreo",
+      "manualUrl": "https://www.rebeltech.org/product/phoreo/",
       "tags": [
         "Clock modulator",
         "Hardware clone"
