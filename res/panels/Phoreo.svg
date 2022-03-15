@@ -25,12 +25,12 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.5554293"
-     inkscape:cx="16.072733"
-     inkscape:cy="195.76589"
+     inkscape:cx="-10.929459"
+     inkscape:cy="300.56011"
      inkscape:window-width="1312"
      inkscape:window-height="1081"
      inkscape:window-x="322"
-     inkscape:window-y="86"
+     inkscape:window-y="58"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <defs
@@ -1197,7 +1197,7 @@
     </g>
     <path
        sodipodi:nodetypes="cc"
-       style="display:inline;fill:none;stroke:#000000;stroke-width:0.705465;stroke-opacity:0.75"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:0.405;stroke-opacity:0.75;stroke-miterlimit:4;stroke-dasharray:none"
        inkscape:connector-curvature="0"
        id="path795"
        d="m 11.657292,86.259375 c 0.16048,0.320963 -5.6291457,7.546674 -2.0677551,8.834917" />
@@ -1205,7 +1205,7 @@
        d="m 11.657292,98.957736 c 0.16048,0.320963 -5.6291457,7.546674 -2.0677551,8.834914"
        id="path3785"
        inkscape:connector-curvature="0"
-       style="display:inline;fill:none;stroke:#000000;stroke-width:0.705465;stroke-opacity:0.75"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:0.405;stroke-opacity:0.75;stroke-miterlimit:4;stroke-dasharray:none"
        sodipodi:nodetypes="cc" />
     <g
        aria-label="MOD"

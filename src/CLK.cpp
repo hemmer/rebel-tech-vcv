@@ -146,7 +146,7 @@ struct CLK : Module {
 
 	int modifier8Cached = 0, modifier24Cached = 0;
 	int outputMultiplier = 0;
-	TriggerMode triggerMode = TRIGGER_MODE;
+	TriggerMode triggerMode = ORIGINAL_MODE;
 
 	struct Scale8ParamQuantity : ParamQuantity {
 		std::string getDisplayValueString() override {
@@ -261,13 +261,13 @@ struct CLKWidget : ModuleWidget {
 		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 38.85)), module, CLK::SCALE_8_PARAM));
 		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 57.9)), module, CLK::SCALE_24_PARAM));
 
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 76.95)), module, CLK::MAIN_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 92.205)), module, CLK::CLOCK_8_OUTPUT));
-		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 108.7)), module, CLK::CLOCK_24_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 79.066666)), module, CLK::MAIN_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 94.941666)), module, CLK::CLOCK_8_OUTPUT));
+		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 110.81666)), module, CLK::CLOCK_24_OUTPUT));
 
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 69.33)), module, CLK::MAIN_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 85.205)), module, CLK::CLOCK_8_LIGHT));
-		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 101.08)), module, CLK::CLOCK_24_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 71.4466)), module, CLK::MAIN_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 87.321671)), module, CLK::CLOCK_8_LIGHT));
+		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(8.222, 103.19668)), module, CLK::CLOCK_24_LIGHT));
 	}
 
 	void appendContextMenu(Menu* menu) override {

@@ -10,5 +10,4 @@ This program is free software: you can redistribute it and/or modify it under th
 
 SPDX-License-Identifier: GPL-2.0-or-later
 
-The **graphics** in the `res/` directory are licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
-Non-commercial use is allowed with appropriate credit and indication of the original license. Components `res/components/Pot.sv` and `res/components/Pot_bg.svg` are derived from [VCV Rack component](https://github.com/VCVRack/Rack/blob/v2/res/ComponentLibrary/SynthTechAlco.svg) `SynthTechAlco` (license also CC BY-NC 4.0), copyright VCV.
+All **graphics** in the `res/` directory are licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). Non-commercial use is allowed with appropriate credit and indication of the original license. Components `res/components/Pot*.svg` are derived from [VCV Rack component](https://github.com/VCVRack/Rack/blob/v2/res/ComponentLibrary/SynthTechAlco.svg) `SynthTechAlco`, copyright VCV (original and derived versions designed by Pyer). Port graphics `res/components/Befaco*Port.svg` are reused with permission - they are designed by Pyer for Befaco for VCV Rack, copyright VCV.
