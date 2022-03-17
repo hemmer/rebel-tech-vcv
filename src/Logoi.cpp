@@ -507,23 +507,17 @@ struct Logoi : Module {
 			divider.fall();
 		}
 
+		if (mode == DISABLED_MODE) {
+			outputs[DIVISION_OUTPUT].setVoltage(0.f);
+			outputs[ADDITION_DELAY_OUTPUT].setVoltage(0.f);
+			outputs[COMBINED_OUTPUT].setVoltage(0.f);
+		}
 
-		// do lights
+		// do lights (just mirror output voltages)
 		{
-			lights[DIVISION_LIGHT].setBrightnessSmooth(!divider.isOff(), args.sampleTime);
+			lights[DIVISION_LIGHT].setBrightnessSmooth((bool) outputs[DIVISION_OUTPUT].getVoltage(), args.sampleTime);
 			lights[COMBINED_LIGHT].setBrightnessSmooth((bool) outputs[COMBINED_OUTPUT].getVoltage(), args.sampleTime);
-
-			switch (mode) {
-				case DELAY_MODE:
-					lights[COUNT_OR_DELAY_LIGHT].setBrightnessSmooth(!delay.isOff(), args.sampleTime);
-					break;
-				case COUNT_MODE:
-					lights[COUNT_OR_DELAY_LIGHT].setBrightnessSmooth((bool) outputs[ADDITION_DELAY_OUTPUT].getVoltage(), args.sampleTime);
-					break;
-				case DISABLED_MODE:
-					outputs[ADDITION_DELAY_OUTPUT].setVoltage(0.f);
-					break;
-			}
+			lights[COUNT_OR_DELAY_LIGHT].setBrightnessSmooth((bool) outputs[ADDITION_DELAY_OUTPUT].getVoltage(), args.sampleTime);
 		}
 	}
 
