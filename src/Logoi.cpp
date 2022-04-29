@@ -353,6 +353,8 @@ struct Logoi : Module {
 		reset();
 
 		updateClocksController.setDivision(updateClocksFrequency);
+
+		theme = loadDefaultTheme();
 	}
 
 	// given VCV param in range 0 - 1, convert to the expected division (for the algorithm)
@@ -534,14 +536,22 @@ struct Logoi : Module {
 
 		return rootJ;
 	}
-
 };
 
 
 struct LogoiWidget : ModuleWidget {
+
+	ModuleTheme theme = ModuleTheme::INVALID_THEME;
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+
 	LogoiWidget(Logoi* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Logoi.svg")));
+
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Logoi.svg"));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Logoi_drk.svg"));
+		setPanel(lightSvg);
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -568,6 +578,24 @@ struct LogoiWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(25.225, 57.78)), module, Logoi::COMBINED_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(12.525, 70.48)), module, Logoi::DIVISION_LIGHT));
 		addChild(createLightCentered<MediumLight<RedLight>>(mm2px(Vec(37.975, 70.625)), module, Logoi::COUNT_OR_DELAY_LIGHT));
+	}
+
+	void draw(const DrawArgs& args) override {
+
+		Logoi* module = dynamic_cast<Logoi*>(this->module);
+		std::vector<Logoi::ParamId> potsToUpdate = {Logoi::DIVISION_PARAM, Logoi::COUNT_OR_DELAY_PARAM,
+		                                            Logoi::DIVISION_CV_PARAM, Logoi::COUNT_OR_DELAY_CV_PARAM
+		                                           };
+		updateComponentsForTheme<Logoi, LogoiWidget, Logoi::ParamId>(module, this, theme, potsToUpdate, lightSvg, darkSvg);
+
+		ModuleWidget::draw(args);
+	}
+
+	void appendContextMenu(Menu* menu) override {
+		Logoi* module = dynamic_cast<Logoi*>(this->module);
+		assert(module);
+
+		addThemeMenuItems(menu, &module->theme);
 	}
 };
 

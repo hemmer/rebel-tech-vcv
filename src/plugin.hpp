@@ -1,7 +1,6 @@
 #pragma once
 #include <rack.hpp>
 
-
 using namespace rack;
 
 // Declare the Plugin, defined in plugin.cpp
@@ -16,6 +15,7 @@ extern Model* modelLogoi;
 extern Model* modelPhoreo;
 
 enum ModuleTheme {
+	INVALID_THEME = -1,
 	LIGHT_THEME,
 	DARK_THEME,
 	NUM_THEMES
@@ -37,6 +37,9 @@ struct BefacoInputPort : app::SvgPort {
 struct RebelTechPot : app::SvgKnob {
 	widget::SvgWidget* bg;
 
+	std::shared_ptr<Svg> fgSvgs[NUM_THEMES];
+	std::shared_ptr<Svg> bgSvgs[NUM_THEMES];
+
 	RebelTechPot() {
 		minAngle = -0.82 * M_PI;
 		maxAngle = 0.82 * M_PI;
@@ -44,10 +47,54 @@ struct RebelTechPot : app::SvgKnob {
 		bg = new widget::SvgWidget;
 		fb->addChildBelow(bg, tw);
 
-		setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Pot.svg")));
-		bg->setSvg(Svg::load(asset::plugin(pluginInstance, "res/components/Pot_bg.svg")));
+		fgSvgs[0] = Svg::load(asset::plugin(pluginInstance, "res/components/Pot.svg"));
+		fgSvgs[1] = Svg::load(asset::system("res/ComponentLibrary/SynthTechAlco.svg"));
+
+		bgSvgs[0] = Svg::load(asset::plugin(pluginInstance, "res/components/Pot_bg.svg"));
+		bgSvgs[1] = Svg::load(asset::system("res/ComponentLibrary/SynthTechAlco_bg.svg"));
+
+		setSvg(fgSvgs[0]);
+		bg->setSvg(bgSvgs[0]);
+	}
+
+	void setGraphicsForTheme(ModuleTheme theme) {
+
+		setSvg(fgSvgs[theme]);
+		bg->setSvg(bgSvgs[theme]);
+		fb->dirty = true;
 	}
 };
+
+
+
+ModuleTheme loadDefaultTheme();
+void readDefaultTheme();
+void saveDefaultTheme(ModuleTheme darkAsDefault);
+void writeDefaultTheme();
+
+template <class M, class W, class P>
+void updateComponentsForTheme(M* module, W* moduleWidget, ModuleTheme& lastPanelTheme, std::vector<P> potIds,
+                              std::shared_ptr<window::Svg> lightSvg, std::shared_ptr<window::Svg> darkSvg) {
+
+	ModuleTheme currentTheme = module ? module->theme : loadDefaultTheme();
+
+	// if theme can be found, and it has changed since last draw()
+	if (module && moduleWidget && lastPanelTheme != currentTheme) {
+
+		lastPanelTheme = currentTheme;
+
+		SvgPanel* panel = static_cast<SvgPanel*>(moduleWidget->getPanel());
+		panel->setBackground(lastPanelTheme == LIGHT_THEME ? lightSvg : darkSvg);
+		panel->fb->dirty = true;
+
+		for (auto potId : potIds) {
+			RebelTechPot* pot = static_cast<RebelTechPot*>(moduleWidget->getParam(potId));
+			pot->setGraphicsForTheme(lastPanelTheme);
+		}
+	}
+}
+
+void addThemeMenuItems(Menu* menu, ModuleTheme *themePtr);
 
 struct Davies1900hWhiteKnobSnap : Davies1900hWhiteKnob {
 	Davies1900hWhiteKnobSnap() {

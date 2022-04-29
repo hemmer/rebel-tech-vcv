@@ -134,6 +134,8 @@ struct Klasmata : Module {
 
 		seq.offset = 0;
 		seq.calculate(12, 8);
+
+		theme = loadDefaultTheme();
 	}
 
 	void processBypass(const ProcessArgs& args) override {
@@ -216,9 +218,19 @@ struct Klasmata : Module {
 
 
 struct KlasmataWidget : ModuleWidget {
+
+	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+
 	KlasmataWidget(Klasmata* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Klasmata.svg")));
+
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Klasmata.svg"));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Klasmata_drk.svg"));
+
+		setPanel(lightSvg);
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -241,6 +253,29 @@ struct KlasmataWidget : ModuleWidget {
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(22.715, 70.625)), module, Klasmata::OUT_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(22.715, 108.725)), module, Klasmata::IN_LIGHT));
+	}
+
+	void draw(const DrawArgs& args) override {
+
+		Klasmata* module = dynamic_cast<Klasmata*>(this->module);
+
+
+		std::vector<Klasmata::ParamIds> potsToUpdate = {Klasmata::OFFSET_PARAM, Klasmata::LENGTH_PARAM, Klasmata::DENSITY_PARAM,
+		                                                Klasmata::LENGTH_CV_PARAM, Klasmata::DENSITY_CV_PARAM
+		                                               };
+
+		updateComponentsForTheme<Klasmata, KlasmataWidget, Klasmata::ParamIds>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
+
+
+		ModuleWidget::draw(args);
+	}
+
+
+	void appendContextMenu(Menu* menu) override {
+		Klasmata* module = dynamic_cast<Klasmata*>(this->module);
+		assert(module);
+
+		addThemeMenuItems(menu, &module->theme);
 	}
 };
 

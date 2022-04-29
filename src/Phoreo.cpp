@@ -205,6 +205,8 @@ struct Phoreo : Module {
 		configOutput(REP_OUTPUT, "Repeated clock");
 
 		reset();
+
+		theme = loadDefaultTheme();
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -282,9 +284,18 @@ struct Phoreo : Module {
 
 
 struct PhoreoWidget : ModuleWidget {
+
+	ModuleTheme theme = ModuleTheme::INVALID_THEME;
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+
 	PhoreoWidget(Phoreo* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Phoreo.svg")));
+
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Phoreo.svg"));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Phoreo_drk.svg"));
+		setPanel(lightSvg);
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -311,6 +322,26 @@ struct PhoreoWidget : ModuleWidget {
 
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(18.925, 89.675)), module, Phoreo::PWM_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(31.625, 102.375)), module, Phoreo::REP_LIGHT));
+	}
+
+	void draw(const DrawArgs& args) override {
+
+		Phoreo* module = dynamic_cast<Phoreo*>(this->module);
+
+		std::vector<Phoreo::ParamId> potsToUpdate = {Phoreo::MOD_PARAM, Phoreo::MOD_CV_PARAM,
+		                                             Phoreo::MUL_PARAM, Phoreo::MUL_CV_PARAM,
+		                                             Phoreo::REP_PARAM, Phoreo::REP_CV_PARAM
+		                                            };
+		updateComponentsForTheme<Phoreo, PhoreoWidget, Phoreo::ParamId>(module, this, theme, potsToUpdate, lightSvg, darkSvg);
+
+		ModuleWidget::draw(args);
+	}
+
+	void appendContextMenu(Menu* menu) override {
+		Phoreo* module = dynamic_cast<Phoreo*>(this->module);
+		assert(module);
+
+		addThemeMenuItems(menu, &module->theme);
 	}
 };
 
