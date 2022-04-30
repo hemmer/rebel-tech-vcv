@@ -177,6 +177,8 @@ struct Stoicheia : Module {
 
 		seq[1].offset = 0;
 		seq[1].calculate(12, 8);
+
+		theme = loadDefaultTheme();
 	}
 
 	void processBypass(const ProcessArgs& args) override {
@@ -319,9 +321,19 @@ struct Stoicheia : Module {
 
 
 struct StoicheiaWidget : ModuleWidget {
+
+	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+
 	StoicheiaWidget(Stoicheia* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Stoicheia.svg")));
+
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Stoicheia.svg"));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Stoicheia_drk.svg"));
+
+		setPanel(lightSvg);
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
@@ -348,6 +360,29 @@ struct StoicheiaWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(25.275, 70.625)), module, Stoicheia::A_AND_B_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(12.574, 83.308)), module, Stoicheia::A_LIGHT));
 		addChild(createLightCentered<MediumLight<YellowLight>>(mm2px(Vec(37.976, 83.326)), module, Stoicheia::B_LIGHT));
+	}
+
+
+	void draw(const DrawArgs& args) override {
+
+		Stoicheia* module = dynamic_cast<Stoicheia*>(this->module);
+
+		std::vector<Stoicheia::ParamIds> potsToUpdate = {Stoicheia::START_A_PARAM, Stoicheia::START_B_PARAM,
+		                                                 Stoicheia::LENGTH_A_PARAM,	Stoicheia::LENGTH_B_PARAM,
+		                                                 Stoicheia::DENSITY_A_PARAM, Stoicheia::DENSITY_B_PARAM,
+		                                                };
+
+		updateComponentsForTheme<Stoicheia, StoicheiaWidget, Stoicheia::ParamIds>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
+
+		ModuleWidget::draw(args);
+	}
+
+
+	void appendContextMenu(Menu* menu) override {
+		Stoicheia* module = dynamic_cast<Stoicheia*>(this->module);
+		assert(module);
+
+		addThemeMenuItems(menu, &module->theme);
 	}
 };
 

@@ -170,6 +170,8 @@ struct CLK : Module {
 		configOutput(MAIN_OUTPUT, "Main clock");
 		configOutput(CLOCK_8_OUTPUT, "Multiplied/divided clock #1");
 		configOutput(CLOCK_24_OUTPUT, "Multiplied/divided clock #2");
+
+		theme = loadDefaultTheme();
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -250,10 +252,18 @@ struct CLK : Module {
 
 
 struct CLKWidget : ModuleWidget {
+
+	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+
 	CLKWidget(CLK* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/CLK.svg")));
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/CLK.svg"));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/CLK_drk.svg"));
 
+		setPanel(lightSvg);
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
@@ -276,6 +286,18 @@ struct CLKWidget : ModuleWidget {
 
 		menu->addChild(createIndexPtrSubmenuItem("Output multiplier",	{"x1", "x2", "x4", "x8", "x16"}, &module->outputMultiplier));
 		menu->addChild(createIndexPtrSubmenuItem("Trigger mode", {"Trigger", "Gate", "Original"}, &module->triggerMode));
+		addThemeMenuItems(menu, &module->theme);
+	}
+
+	void draw(const DrawArgs& args) override {
+
+		CLK* module = dynamic_cast<CLK*>(this->module);
+
+		std::vector<CLK::ParamId> potsToUpdate = {};
+
+		updateComponentsForTheme<CLK, CLKWidget, CLK::ParamId>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
+
+		ModuleWidget::draw(args);
 	}
 };
 

@@ -42,6 +42,8 @@ struct Tonic : Module {
 
 		configOutput(GATE_OUTPUT, "Gate (logical OR of all inputs/buttons)");
 		configOutput(CV_OUTPUT, "Quantized CV");
+
+		theme = loadDefaultTheme();
 	}
 
 	void process(const ProcessArgs& args) override {
@@ -129,9 +131,18 @@ struct TonicButton : app::SvgSwitch {
 };
 
 struct TonicWidget : ModuleWidget {
+	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+
 	TonicWidget(Tonic* module) {
 		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/panels/Tonic.svg")));
+
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Tonic.svg"));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Tonic_drk.svg"));
+
+		setPanel(lightSvg);
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
@@ -160,6 +171,27 @@ struct TonicWidget : ModuleWidget {
 		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 70.602)), module, Tonic::LED + 3 * 3));
 		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 83.304)), module, Tonic::LED + 4 * 3));
 		addChild(createLightCentered<MediumLight<RedGreenBlueLight>>(mm2px(Vec(15.025, 96.007)), module, Tonic::LED + 5 * 3));
+	}
+
+	void draw(const DrawArgs& args) override {
+
+		Tonic* module = dynamic_cast<Tonic*>(this->module);
+
+
+		std::vector<Tonic::ParamIds> potsToUpdate = {};
+
+		updateComponentsForTheme<Tonic, TonicWidget, Tonic::ParamIds>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
+
+
+		ModuleWidget::draw(args);
+	}
+
+
+	void appendContextMenu(Menu* menu) override {
+		Tonic* module = dynamic_cast<Tonic*>(this->module);
+		assert(module);
+
+		addThemeMenuItems(menu, &module->theme);
 	}
 };
 
