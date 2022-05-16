@@ -37,11 +37,12 @@ struct Phoreo : Module {
 
 	class ClockDuration {
 	public:
-		ClockTick period;
-		ClockTick fallMark;
-		ClockTick pos;
+		float period;
+		float fallMark;
+		float pos;
 		bool state;
-		uint16_t duration;
+		float duration;
+
 		ClockDuration() {
 			reset();
 		}
@@ -51,12 +52,13 @@ struct Phoreo : Module {
 		}
 		inline void rise() {
 			period = pos;
-			fallMark = ((uint32_t)period * duration) >> 12;
+			fallMark = period * duration;
 			pos = 0;
 			on();
 		}
-		inline void clock() {
-			if (++pos >= fallMark) {
+		inline void clock(float sampleTime) {
+			pos += sampleTime;
+			if (pos >= fallMark) {
 				off();
 			}
 		}
@@ -74,10 +76,10 @@ struct Phoreo : Module {
 
 	class ClockMultiplier {
 	public:
-		ClockTick fallMark;
-		ClockTick pos;
-		ClockTick counter;
-		ClockTick period;
+		float fallMark;
+		float pos;
+		float counter;
+		float period;
 		bool state;
 		uint16_t mul;
 
@@ -91,19 +93,21 @@ struct Phoreo : Module {
 		inline void rise(ClockDuration& dur) {
 			on();
 			period = counter / mul;
-			fallMark = (((uint32_t)period * dur.duration) >> 12);
+			fallMark = period * dur.duration;
+
 			counter = 0;
 			pos = 0;
 		}
-		inline void clock() {
-			if (pos++ == fallMark) {
+		inline void clock(float sampleTime) {
+			pos += sampleTime;
+			if (pos >= fallMark && state) {
 				off();
 			}
 			else if (pos >= period) {
 				on();
 				pos = 0;
 			}
-			counter++;
+			counter += sampleTime;
 		}
 		void on() {
 			state = true;
@@ -121,11 +125,11 @@ struct Phoreo : Module {
 		ClockRepeater() {
 			reset();
 		}
-		ClockTick period;
-		ClockTick fallMark;
+		float period;
+		float fallMark;
 		uint8_t reps;
 		uint8_t times;
-		ClockTick pos;
+		float pos;
 		bool running;
 		bool state;
 		uint16_t rep;
@@ -141,13 +145,14 @@ struct Phoreo : Module {
 			times = 0;
 			reps = rep;
 			period = mul.period;
-			fallMark = (((uint32_t)period * dur.duration) >> 12);
+			fallMark = period * dur.duration;
 			pos = 0;
 			running = true;
 		}
-		inline void clock() {
+		inline void clock(float sampleTime) {
 			if (running) {
-				if (pos++ == fallMark) {
+				pos += sampleTime;
+				if (pos >= fallMark && state) {
 					off();
 				}
 				else if (pos >= period) {
@@ -215,8 +220,7 @@ struct Phoreo : Module {
 		{
 			// range -10V to +10V scaled to -1 to +1
 			float durCV = params[MOD_CV_PARAM].getValue() * clamp(inputs[MOD_CV_INPUT].getVoltage(), -10.f, +10.f) / 10.f;
-			float durTotal = clamp(params[MOD_PARAM].getValue() / 100.f + durCV, 0.f, 1.f);
-			dur.duration = durTotal * 4097.f;
+			dur.duration = clamp(params[MOD_PARAM].getValue() / 100.f + durCV, 0.f, 1.f);
 
 			// range -10V to +10V scaled to -1 to +1
 			float mulCV = params[MUL_CV_PARAM].getValue() * clamp(inputs[MUL_CV_INPUT].getVoltage(), -10.f, +10.f) / 10.f;
@@ -249,9 +253,9 @@ struct Phoreo : Module {
 			rep.rise(dur, mul);
 		}
 
-		dur.clock();
-		mul.clock();
-		rep.clock();
+		dur.clock(args.sampleTime);
+		mul.clock(args.sampleTime);
+		rep.clock(args.sampleTime);
 
 		lights[PWM_LIGHT].setBrightnessSmooth(!dur.isOff(), args.sampleTime);
 		lights[REP_LIGHT].setBrightnessSmooth(!rep.isOff(), args.sampleTime);
