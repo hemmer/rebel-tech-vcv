@@ -439,17 +439,18 @@ struct Logoi : Module {
 			reset();
 		}
 
+		const int mode = (int) params[MODE_PARAM].getValue();
+
 		// do every N ticks (set by updateClocksFrequency)
 		if (updateClocksController.process()) {
 			delay.clock();
 			swinger.clock();
-		}
 
-		const int mode = (int) params[MODE_PARAM].getValue();
-		switch (mode) {
-			case DELAY_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Delay"; break;
-			case COUNT_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Count"; break;
-			case DISABLED_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Off"; break;
+			switch (mode) {
+				case DELAY_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Delay"; break;
+				case COUNT_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Count"; break;
+				case DISABLED_MODE: getParamQuantity(COUNT_OR_DELAY_PARAM)->name = "Off"; break;
+			}
 		}
 
 		// Schmitt trigger on incoming clock
@@ -568,7 +569,6 @@ struct LogoiWidget : ModuleWidget {
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(37.925, 83.18)), module, Logoi::COUNT_OR_DELAY_CV_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.225, 95.88)), module, Logoi::RESET_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.525, 108.58)), module, Logoi::CLOCK_INPUT));
-
 
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(12.525, 95.88)), module, Logoi::DIVISION_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(37.925, 95.88)), module, Logoi::ADDITION_DELAY_OUTPUT));
