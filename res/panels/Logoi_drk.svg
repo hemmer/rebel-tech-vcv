@@ -7,7 +7,7 @@
    viewBox="0 0 50.549999 128.55"
    version="1.1"
    id="svg1166"
-   inkscape:version="1.1.1 (c3084ef, 2021-09-22)"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
    sodipodi:docname="Logoi_drk.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -23,15 +23,17 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="3.1108586"
-     inkscape:cx="90.007306"
-     inkscape:cy="151.88733"
-     inkscape:window-width="2560"
-     inkscape:window-height="1387"
-     inkscape:window-x="2560"
+     inkscape:zoom="2.4387188"
+     inkscape:cx="53.71673"
+     inkscape:cy="317.17473"
+     inkscape:window-width="1390"
+     inkscape:window-height="1205"
+     inkscape:window-x="0"
      inkscape:window-y="25"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
   <defs
      id="defs1163">
     <clipPath
@@ -181,7 +183,7 @@
      id="layer1">
     <g
        id="g4383"
-       style="display:inline;fill:#ffffff;stroke:#ff0000;stroke-width:0.05;fill-opacity:1"
+       style="display:inline;fill:#ffffff;stroke:none;stroke-width:0.05;fill-opacity:1"
        transform="translate(0.025,0.02499676)">
       <rect
          id="rect4385"
@@ -189,7 +191,7 @@
          width="50.5"
          y="0"
          x="0"
-         style="fill:#171717;fill-opacity:1" />
+         style="fill:#171717;fill-opacity:1;stroke:none" />
     </g>
     <g
        id="g240"

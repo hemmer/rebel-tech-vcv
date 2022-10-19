@@ -151,13 +151,13 @@ struct Logoi : Module {
 
 	class ClockSwing : public ClockDelay {
 	public:
-		void on() {
+		void on() override {
 			combinedOutput->setVoltage(10.f);
 		}
-		void off() {
+		void off() override {
 			combinedOutput->setVoltage(0.f);
 		}
-		bool isOff() {
+		bool isOff() override {
 			return combinedOutput->getVoltage() == 0;
 		}
 		void setOutputs(Output* delayOutput_, Output* combinedOutput_) {
@@ -174,14 +174,14 @@ struct Logoi : Module {
 			ClockCounter::setOutput(delayOutput_);
 			combinedOutput = combinedOutput_;
 		}
-		void on() {
+		void on() override {
 			combinedOutput->setVoltage(10.f);
 
 		}
-		void off() {
+		void off() override {
 			combinedOutput->setVoltage(0.f);
 		}
-		bool isOff() {
+		bool isOff() override {
 			return combinedOutput->getVoltage() == 0;
 		}
 	private:
@@ -265,9 +265,10 @@ struct Logoi : Module {
 					assert(false);
 				}
 			}
-			else {
-				return "";
-			}
+
+			return "";
+			return "";
+			return "";
 		}
 
 		void setDisplayValueString(std::string s) override {
@@ -298,9 +299,10 @@ struct Logoi : Module {
 					assert(false);
 				}
 			}
-			else {
-				return "";
-			}
+
+			return "";
+			return "";
+			return "";
 		}
 
 		void setDisplayValueString(std::string s) override {
@@ -540,29 +542,25 @@ struct Logoi : Module {
 };
 
 
-struct LogoiWidget : ModuleWidget {
+struct LogoiWidget : RebelTechModuleWidget {
 
-	ModuleTheme theme = ModuleTheme::INVALID_THEME;
-
-	std::shared_ptr<window::Svg> lightSvg;
-	std::shared_ptr<window::Svg> darkSvg;
-
-	LogoiWidget(Logoi* module) {
+	LogoiWidget(Logoi* module) : RebelTechModuleWidget("res/panels/Logoi.svg", "res/panels/Logoi_drk.svg") {
 		setModule(module);
 
-		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Logoi.svg"));
-		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Logoi_drk.svg"));
 		setPanel(lightSvg);
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		for (auto screw : screws) {
+			addChild(screw);
+		}
 
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.533, 26.112)), module, Logoi::DIVISION_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.933, 26.112)), module, Logoi::COUNT_OR_DELAY_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.533, 45.162)), module, Logoi::DIVISION_CV_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.933, 45.162)), module, Logoi::COUNT_OR_DELAY_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.533, 26.112)), module, Logoi::DIVISION_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.933, 26.112)), module, Logoi::COUNT_OR_DELAY_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.533, 45.162)), module, Logoi::DIVISION_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.933, 45.162)), module, Logoi::COUNT_OR_DELAY_CV_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.225, 70.48)), module, Logoi::MODE_PARAM));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.525, 83.18)), module, Logoi::DIVISION_CV_INPUT));
@@ -583,11 +581,7 @@ struct LogoiWidget : ModuleWidget {
 	void draw(const DrawArgs& args) override {
 
 		Logoi* module = dynamic_cast<Logoi*>(this->module);
-		std::vector<Logoi::ParamId> potsToUpdate = {Logoi::DIVISION_PARAM, Logoi::COUNT_OR_DELAY_PARAM,
-		                                            Logoi::DIVISION_CV_PARAM, Logoi::COUNT_OR_DELAY_CV_PARAM
-		                                           };
-		updateComponentsForTheme<Logoi, LogoiWidget, Logoi::ParamId>(module, this, theme, potsToUpdate, lightSvg, darkSvg);
-
+		updateComponentsForTheme<Logoi>(module, this, theme);
 		ModuleWidget::draw(args);
 	}
 

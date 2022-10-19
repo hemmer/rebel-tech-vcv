@@ -217,32 +217,26 @@ struct Klasmata : Module {
 };
 
 
-struct KlasmataWidget : ModuleWidget {
+struct KlasmataWidget : RebelTechModuleWidget {
 
-	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
-
-	std::shared_ptr<window::Svg> lightSvg;
-	std::shared_ptr<window::Svg> darkSvg;
-
-	KlasmataWidget(Klasmata* module) {
+	KlasmataWidget(Klasmata* module) : RebelTechModuleWidget("res/panels/Klasmata.svg", "res/panels/Klasmata_drk.svg") {
 		setModule(module);
-
-		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Klasmata.svg"));
-		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Klasmata_drk.svg"));
-
 		setPanel(lightSvg);
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		for (auto screw : screws) {
+			addChild(screw);
+		}
 
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 26.256)), module, Klasmata::OFFSET_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 45.306)), module, Klasmata::LENGTH_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.55, 26.256)), module, Klasmata::OFFSET_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.55, 45.306)), module, Klasmata::LENGTH_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(32.875, 45.225)), module, Klasmata::SWITCH_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 64.356)), module, Klasmata::DENSITY_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 83.406)), module, Klasmata::LENGTH_CV_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.55, 102.456)), module, Klasmata::DENSITY_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.55, 64.356)), module, Klasmata::DENSITY_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.55, 83.406)), module, Klasmata::LENGTH_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.55, 102.456)), module, Klasmata::DENSITY_CV_PARAM));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 57.925)), module, Klasmata::RESET_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(32.875, 83.325)), module, Klasmata::LENGTH_CV_INPUT));
@@ -258,15 +252,7 @@ struct KlasmataWidget : ModuleWidget {
 	void draw(const DrawArgs& args) override {
 
 		Klasmata* module = dynamic_cast<Klasmata*>(this->module);
-
-
-		std::vector<Klasmata::ParamIds> potsToUpdate = {Klasmata::OFFSET_PARAM, Klasmata::LENGTH_PARAM, Klasmata::DENSITY_PARAM,
-		                                                Klasmata::LENGTH_CV_PARAM, Klasmata::DENSITY_CV_PARAM
-		                                               };
-
-		updateComponentsForTheme<Klasmata, KlasmataWidget, Klasmata::ParamIds>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
-
-
+		updateComponentsForTheme<Klasmata>(module, this, theme);
 		ModuleWidget::draw(args);
 	}
 

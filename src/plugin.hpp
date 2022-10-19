@@ -34,13 +34,13 @@ struct BefacoInputPort : app::SvgPort {
 	}
 };
 
-struct RebelTechPot : app::SvgKnob {
+struct RebelTechBigPot : app::SvgKnob {
 	widget::SvgWidget* bg;
 
 	std::shared_ptr<Svg> fgSvgs[NUM_THEMES];
 	std::shared_ptr<Svg> bgSvgs[NUM_THEMES];
 
-	RebelTechPot() {
+	RebelTechBigPot() {
 		minAngle = -0.82 * M_PI;
 		maxAngle = 0.82 * M_PI;
 
@@ -65,6 +65,37 @@ struct RebelTechPot : app::SvgKnob {
 	}
 };
 
+struct RebelTechSmallPot : app::SvgKnob {
+	widget::SvgWidget* bg;
+
+	std::shared_ptr<Svg> fgSvgs[NUM_THEMES];
+	std::shared_ptr<Svg> bgSvgs[NUM_THEMES];
+
+	RebelTechSmallPot() {
+		minAngle = -0.83 * M_PI;
+		maxAngle = 0.83 * M_PI;
+
+		bg = new widget::SvgWidget;
+		fb->addChildBelow(bg, tw);
+
+		fgSvgs[0] = Svg::load(asset::system("res/ComponentLibrary/Davies1900hWhite.svg"));
+		fgSvgs[1] = Svg::load(asset::system("res/ComponentLibrary/Davies1900hBlack.svg"));
+
+		bgSvgs[0] = Svg::load(asset::system("res/ComponentLibrary/Davies1900hWhite_bg.svg"));
+		bgSvgs[1] = Svg::load(asset::system("res/ComponentLibrary/Davies1900hBlack_bg.svg"));
+
+		setSvg(fgSvgs[0]);
+		bg->setSvg(bgSvgs[0]);
+	}
+
+	void setGraphicsForTheme(ModuleTheme theme) {
+
+		setSvg(fgSvgs[theme]);
+		bg->setSvg(bgSvgs[theme]);
+		fb->dirty = true;
+	}
+};
+
 
 
 ModuleTheme loadDefaultTheme();
@@ -72,29 +103,66 @@ void readDefaultTheme();
 void saveDefaultTheme(ModuleTheme darkAsDefault);
 void writeDefaultTheme();
 
-template <class M, class W, class P>
-void updateComponentsForTheme(M* module, W* moduleWidget, ModuleTheme& lastPanelTheme, std::vector<P> potIds,
-                              std::shared_ptr<window::Svg> lightSvg, std::shared_ptr<window::Svg> darkSvg) {
+struct RebelTechModuleWidget : ModuleWidget {
+
+	ModuleTheme theme = ModuleTheme::INVALID_THEME;
+
+	RebelTechModuleWidget(std::string lightPanelSvgPath, std::string darkPanelSvgPath) {
+		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, lightPanelSvgPath));
+		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, darkPanelSvgPath));		
+	}
+
+	std::shared_ptr<window::Svg> lightSvg;
+	std::shared_ptr<window::Svg> darkSvg;
+	std::vector<SvgScrew*> screws;
+};
+
+
+template <class M>
+void updateComponentsForTheme(M* module, RebelTechModuleWidget* moduleWidget, ModuleTheme& lastPanelTheme) {
 
 	ModuleTheme currentTheme = module ? module->theme : loadDefaultTheme();
 
+	const bool redrawRequired = moduleWidget && lastPanelTheme != currentTheme;
+	const bool browserView = !module; 	// nullptr for module implies we're in browser view
+
 	// if theme can be found, and it has changed since last draw()
-	if (module && moduleWidget && lastPanelTheme != currentTheme) {
+	if (redrawRequired || browserView) {
 
 		lastPanelTheme = currentTheme;
 
 		SvgPanel* panel = static_cast<SvgPanel*>(moduleWidget->getPanel());
-		panel->setBackground(lastPanelTheme == LIGHT_THEME ? lightSvg : darkSvg);
+		panel->setBackground(lastPanelTheme == LIGHT_THEME ? moduleWidget->lightSvg : moduleWidget->darkSvg);
 		panel->fb->dirty = true;
 
-		for (auto potId : potIds) {
-			RebelTechPot* pot = static_cast<RebelTechPot*>(moduleWidget->getParam(potId));
-			pot->setGraphicsForTheme(lastPanelTheme);
+		for (ParamWidget* p : moduleWidget->getParams()) {
+
+			// TODO: parent class RebelTechWdiget
+			RebelTechBigPot* bigPot = dynamic_cast<RebelTechBigPot*>(p);
+			if (bigPot) {
+				bigPot->setGraphicsForTheme(lastPanelTheme);
+			}
+			else {
+				RebelTechSmallPot* smallPot = dynamic_cast<RebelTechSmallPot*>(p);
+				if (smallPot) {
+					smallPot->setGraphicsForTheme(lastPanelTheme);
+				}
+			}
+		}
+
+		for (auto screw : moduleWidget->screws) {
+			if (lastPanelTheme == LIGHT_THEME) {
+				screw->setSvg(Svg::load(asset::system("res/ComponentLibrary/ScrewSilver.svg")));
+			}
+			else {
+				screw->setSvg(Svg::load(asset::system("res/ComponentLibrary/ScrewBlack.svg")));
+			}
+			screw->fb->dirty = true;
 		}
 	}
 }
 
-void addThemeMenuItems(Menu* menu, ModuleTheme *themePtr);
+void addThemeMenuItems(Menu* menu, ModuleTheme* themePtr);
 
 struct Davies1900hWhiteKnobSnap : Davies1900hWhiteKnob {
 	Davies1900hWhiteKnobSnap() {

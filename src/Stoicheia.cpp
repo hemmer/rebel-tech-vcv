@@ -320,32 +320,26 @@ struct Stoicheia : Module {
 
 
 
-struct StoicheiaWidget : ModuleWidget {
+struct StoicheiaWidget : RebelTechModuleWidget {
 
-	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
-
-	std::shared_ptr<window::Svg> lightSvg;
-	std::shared_ptr<window::Svg> darkSvg;
-
-	StoicheiaWidget(Stoicheia* module) {
+	StoicheiaWidget(Stoicheia* module) : RebelTechModuleWidget("res/panels/Stoicheia.svg", "res/panels/Stoicheia_drk.svg") {
 		setModule(module);
-
-		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Stoicheia.svg"));
-		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Stoicheia_drk.svg"));
-
 		setPanel(lightSvg);
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		for (auto screw : screws) {
+			addChild(screw);
+		}
 
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.569, 26.174)), module, Stoicheia::START_A_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.971, 26.174)), module, Stoicheia::START_B_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.569, 45.374)), module, Stoicheia::LENGTH_A_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.971, 45.374)), module, Stoicheia::LENGTH_B_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.569, 64.574)), module, Stoicheia::DENSITY_A_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.971, 64.574)), module, Stoicheia::DENSITY_B_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.569, 26.174)), module, Stoicheia::START_A_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.971, 26.174)), module, Stoicheia::START_B_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.569, 45.374)), module, Stoicheia::LENGTH_A_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.971, 45.374)), module, Stoicheia::LENGTH_B_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.569, 64.574)), module, Stoicheia::DENSITY_A_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.971, 64.574)), module, Stoicheia::DENSITY_B_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(25.275, 83.326)), module, Stoicheia::AB_MODE));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(12.347, 96.026)), module, Stoicheia::MODE_A_PARAM));
 		addParam(createParamCentered<BefacoSwitch>(mm2px(Vec(37.976, 96.026)), module, Stoicheia::MODE_B_PARAM));
@@ -366,14 +360,7 @@ struct StoicheiaWidget : ModuleWidget {
 	void draw(const DrawArgs& args) override {
 
 		Stoicheia* module = dynamic_cast<Stoicheia*>(this->module);
-
-		std::vector<Stoicheia::ParamIds> potsToUpdate = {Stoicheia::START_A_PARAM, Stoicheia::START_B_PARAM,
-		                                                 Stoicheia::LENGTH_A_PARAM,	Stoicheia::LENGTH_B_PARAM,
-		                                                 Stoicheia::DENSITY_A_PARAM, Stoicheia::DENSITY_B_PARAM,
-		                                                };
-
-		updateComponentsForTheme<Stoicheia, StoicheiaWidget, Stoicheia::ParamIds>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
-
+		updateComponentsForTheme<Stoicheia>(module, this, theme);
 		ModuleWidget::draw(args);
 	}
 

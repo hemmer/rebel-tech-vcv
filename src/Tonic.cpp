@@ -130,24 +130,19 @@ struct TonicButton : app::SvgSwitch {
 	}
 };
 
-struct TonicWidget : ModuleWidget {
-	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
+struct TonicWidget : RebelTechModuleWidget {
 
-	std::shared_ptr<window::Svg> lightSvg;
-	std::shared_ptr<window::Svg> darkSvg;
-
-	TonicWidget(Tonic* module) {
+	TonicWidget(Tonic* module) : RebelTechModuleWidget("res/panels/Tonic.svg", "res/panels/Tonic_drk.svg") {
 		setModule(module);
-
-		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Tonic.svg"));
-		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Tonic_drk.svg"));
-
 		setPanel(lightSvg);
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		for (auto screw : screws) {
+			addChild(screw);
+		}
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(15.02, 18.431)), module, Tonic::SCALE_PARAM));
+		addParam(createParamCentered<RebelTechSmallPot>(mm2px(Vec(15.02, 18.431)), module, Tonic::SCALE_PARAM));
 		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 32.525)), module, Tonic::BUTTON + 0));
 		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 45.225)), module, Tonic::BUTTON + 1));
 		addParam(createParamCentered<TonicButton>(mm2px(Vec(22.645, 57.925)), module, Tonic::BUTTON + 2));
@@ -176,16 +171,9 @@ struct TonicWidget : ModuleWidget {
 	void draw(const DrawArgs& args) override {
 
 		Tonic* module = dynamic_cast<Tonic*>(this->module);
-
-
-		std::vector<Tonic::ParamIds> potsToUpdate = {};
-
-		updateComponentsForTheme<Tonic, TonicWidget, Tonic::ParamIds>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
-
-
+		updateComponentsForTheme<Tonic>(module, this, theme);
 		ModuleWidget::draw(args);
 	}
-
 
 	void appendContextMenu(Menu* menu) override {
 		Tonic* module = dynamic_cast<Tonic*>(this->module);

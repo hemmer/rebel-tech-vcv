@@ -4,16 +4,13 @@
         {
             "label": "Builds application",
             "type": "shell",
-            "command": "make",
-            "windows":{
-                "command": "make"
-            },
+            "command": "make install",            
             "options": {
                 "cwd": "${workspaceRoot}",
                 "env":{
-                    "PATH": "C:\\msys64\\usr\\bin\\;C:\\msys64\\mingw64\\bin",
-                    "RACK_DIR": "C:/Users/hemmer/Code/VCV/Rack-SDK",
-                    "RACK_USER_DIR": "E:/Documents/Rack"
+                    // "PATH": "C:\\msys64\\usr\\bin\\;C:\\msys64\\mingw64\\bin",
+                    "RACK_DIR": "/Users/ewanhemingway/Documents/Code/VCV/Rack",
+                    "RACK_USER_DIR": "/Users/ewanhemingway/Documents/Rack2"
                 }
             },
             "group": {

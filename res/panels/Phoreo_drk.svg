@@ -7,7 +7,7 @@
    viewBox="0 0 50.5 128.5"
    version="1.1"
    id="svg2224"
-   inkscape:version="1.1.1 (c3084ef, 2021-09-22)"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
    sodipodi:docname="Phoreo_drk.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -23,16 +23,18 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="1.5288197"
-     inkscape:cx="57.560744"
-     inkscape:cy="278.31928"
+     inkscape:zoom="1.1984992"
+     inkscape:cx="128.07685"
+     inkscape:cy="215.68643"
      inkscape:window-width="1312"
      inkscape:window-height="1081"
      inkscape:window-x="3713"
-     inkscape:window-y="198"
+     inkscape:window-y="170"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
-     showguides="false" />
+     showguides="false"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
   <defs
      id="defs2221" />
   <g
@@ -771,13 +773,6 @@
        height="128.48817"
        id="rect2081-3"
        style="display:inline;fill:#171717;fill-opacity:1;stroke:none;stroke-width:0.0794476" />
-    <line
-       style="fill:none;stroke:#000000;stroke-width:0.141093"
-       id="line677"
-       y2="64.31691"
-       x2="53.41798"
-       y1="24.01936"
-       x1="57.132607" />
     <g
        id="g1242"
        style="fill:none;stroke:#cccccc;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
@@ -895,13 +890,6 @@
          y1="39.342758"
          x1="62.987606" />
     </g>
-    <line
-       style="fill:none;stroke:#000000;stroke-width:0.141093"
-       id="line695"
-       y2="23.882154"
-       x2="57.663822"
-       y1="39.342758"
-       x1="62.987606" />
     <circle
        id="circle697"
        r="0.90158361"
@@ -939,41 +927,6 @@
        cx="46.906902"
        style="stroke-width:0.352732;fill:#cccccc;fill-opacity:1" />
     <circle
-       id="circle709"
-       r="0.90123087"
-       cy="23.82324"
-       cx="57.154121"
-       style="stroke-width:0.352732" />
-    <circle
-       id="circle711"
-       r="0.78906202"
-       cy="13.984488"
-       cx="66.268723"
-       style="stroke-width:0.352732" />
-    <circle
-       id="circle713"
-       r="0.67583495"
-       cy="21.741423"
-       cx="92.661209"
-       style="stroke-width:0.352732" />
-    <circle
-       id="circle715"
-       r="0.90158361"
-       cy="43.05632"
-       cx="73.021774"
-       style="stroke-width:0.352732" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path717"
-       d="m 57.251475,60.830147 c 0.0388,0.308288 -0.180599,0.58871 -0.488887,0.62751 -0.308993,0.0381 -0.589063,-0.180246 -0.627863,-0.488887 -0.03774,-0.308993 0.180246,-0.590473 0.489592,-0.628568 0.308994,-0.03774 0.590474,0.180951 0.627158,0.489945 z"
-       style="stroke-width:0.352732" />
-    <circle
-       id="circle719"
-       r="1.0137525"
-       cy="64.249886"
-       cx="53.476185"
-       style="stroke-width:0.352732" />
-    <circle
        id="circle721"
        r="1.0137525"
        cy="56.384308"
@@ -996,12 +949,6 @@
        id="path727"
        d="m 10.426623,73.223041 c 0.05397,0.43245 -0.252909,0.826805 -0.6850059,0.880773 -0.4324498,0.05326 -0.8257462,-0.253615 -0.880067,-0.686065 -0.053263,-0.431744 0.2536145,-0.824688 0.6860642,-0.879008 0.432097,-0.05291 0.8253937,0.253261 0.8790087,0.6843 z"
        style="stroke-width:0.352732;fill:#cccccc;fill-opacity:1" />
-    <circle
-       id="circle729"
-       r="0.90123087"
-       cy="88.783119"
-       cx="61.706833"
-       style="stroke-width:0.352732" />
     <path
        inkscape:connector-curvature="0"
        id="path731"
@@ -1014,32 +961,15 @@
        style="stroke-width:0.352732;fill:#cccccc;fill-opacity:1" />
     <path
        inkscape:connector-curvature="0"
-       id="path735"
-       d="m 71.555473,113.88989 c 0.06102,0.49383 -0.289946,0.94392 -0.782713,1.00494 -0.495236,0.0621 -0.946028,-0.28854 -1.006698,-0.78271 -0.06173,-0.49454 0.289594,-0.94533 0.784477,-1.0067 0.492414,-0.061 0.943206,0.28959 1.004934,0.78447 z"
-       style="stroke-width:0.352732" />
-    <path
-       inkscape:connector-curvature="0"
        id="path737"
        d="m 36.342213,80.794791 c 0.06102,0.49312 -0.289593,0.943206 -0.783418,1.004229 -0.493825,0.06138 -0.944264,-0.288888 -1.005639,-0.78236 -0.06138,-0.494531 0.289593,-0.94497 0.783418,-1.005992 0.493825,-0.06102 0.944264,0.289593 1.005639,0.784123 z"
        style="stroke-width:0.352732;fill:#cccccc;fill-opacity:1" />
-    <path
-       inkscape:connector-curvature="0"
-       id="path739"
-       d="m 63.673318,39.34699 c 0.06102,0.494177 -0.290298,0.943911 -0.782712,1.005286 -0.494178,0.06102 -0.945323,-0.28924 -1.006346,-0.783418 -0.06173,-0.494883 0.289594,-0.944617 0.783771,-1.005992 0.493473,-0.06067 0.944265,0.289593 1.005287,0.784124 z"
-       style="stroke-width:0.352732" />
     <circle
        id="circle741"
        r="0.90123087"
        cy="66.218483"
        cx="30.364105"
        style="stroke-width:0.352732;fill:#cccccc;fill-opacity:1" />
-    <rect
-       style="display:inline;fill:#ffffff;stroke-width:0.282222"
-       id="rect765"
-       height="128.5"
-       width="42.747211"
-       y="0.55416268"
-       x="50.552368" />
     <g
        aria-label="MOD"
        id="text769"

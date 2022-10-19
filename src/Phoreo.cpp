@@ -287,31 +287,26 @@ struct Phoreo : Module {
 };
 
 
-struct PhoreoWidget : ModuleWidget {
+struct PhoreoWidget : RebelTechModuleWidget {
 
-	ModuleTheme theme = ModuleTheme::INVALID_THEME;
-
-	std::shared_ptr<window::Svg> lightSvg;
-	std::shared_ptr<window::Svg> darkSvg;
-
-	PhoreoWidget(Phoreo* module) {
+	PhoreoWidget(Phoreo* module) : RebelTechModuleWidget("res/panels/Phoreo.svg", "res/panels/Phoreo_drk.svg") {
 		setModule(module);
-
-		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Phoreo.svg"));
-		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/Phoreo_drk.svg"));
 		setPanel(lightSvg);
 
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		for (auto screw : screws) {
+			addChild(screw);
+		}
 
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.583, 26.247)), module, Phoreo::MOD_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.983, 26.247)), module, Phoreo::MOD_CV_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.583, 45.296)), module, Phoreo::MUL_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.983, 45.296)), module, Phoreo::MUL_CV_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(12.583, 64.346)), module, Phoreo::REP_PARAM));
-		addParam(createParamCentered<RebelTechPot>(mm2px(Vec(37.983, 64.346)), module, Phoreo::REP_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.583, 26.247)), module, Phoreo::MOD_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.983, 26.247)), module, Phoreo::MOD_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.583, 45.296)), module, Phoreo::MUL_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.983, 45.296)), module, Phoreo::MUL_CV_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(12.583, 64.346)), module, Phoreo::REP_PARAM));
+		addParam(createParamCentered<RebelTechBigPot>(mm2px(Vec(37.983, 64.346)), module, Phoreo::REP_CV_PARAM));
 
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(12.575, 83.325)), module, Phoreo::MOD_TRIG_INPUT));
 		addInput(createInputCentered<BefacoInputPort>(mm2px(Vec(25.275, 83.325)), module, Phoreo::MOD_CV_INPUT));
@@ -331,13 +326,7 @@ struct PhoreoWidget : ModuleWidget {
 	void draw(const DrawArgs& args) override {
 
 		Phoreo* module = dynamic_cast<Phoreo*>(this->module);
-
-		std::vector<Phoreo::ParamId> potsToUpdate = {Phoreo::MOD_PARAM, Phoreo::MOD_CV_PARAM,
-		                                             Phoreo::MUL_PARAM, Phoreo::MUL_CV_PARAM,
-		                                             Phoreo::REP_PARAM, Phoreo::REP_CV_PARAM
-		                                            };
-		updateComponentsForTheme<Phoreo, PhoreoWidget, Phoreo::ParamId>(module, this, theme, potsToUpdate, lightSvg, darkSvg);
-
+		updateComponentsForTheme<Phoreo>(module, this, theme);
 		ModuleWidget::draw(args);
 	}
 

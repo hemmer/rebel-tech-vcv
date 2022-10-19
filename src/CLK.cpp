@@ -251,25 +251,21 @@ struct CLK : Module {
 };
 
 
-struct CLKWidget : ModuleWidget {
+struct CLKWidget : RebelTechModuleWidget {
 
-	ModuleTheme lastPanelTheme = ModuleTheme::INVALID_THEME;
-
-	std::shared_ptr<window::Svg> lightSvg;
-	std::shared_ptr<window::Svg> darkSvg;
-
-	CLKWidget(CLK* module) {
+	CLKWidget(CLK* module) : RebelTechModuleWidget("res/panels/CLK.svg", "res/panels/CLK_drk.svg") {
 		setModule(module);
-		lightSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/CLK.svg"));
-		darkSvg = APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/CLK_drk.svg"));
-
+		
 		setPanel(lightSvg);
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		screws.push_back(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		for (auto screw : screws) {
+			addChild(screw);
+		}
 
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 19.8)), module, CLK::BPM_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 38.85)), module, CLK::SCALE_8_PARAM));
-		addParam(createParamCentered<Davies1900hWhiteKnobSnap>(mm2px(Vec(8.984, 57.9)), module, CLK::SCALE_24_PARAM));
+		addParam(createParamCentered<RebelTechSmallPot>(mm2px(Vec(8.984, 19.8)), module, CLK::BPM_PARAM));
+		addParam(createParamCentered<RebelTechSmallPot>(mm2px(Vec(8.984, 38.85)), module, CLK::SCALE_8_PARAM));
+		addParam(createParamCentered<RebelTechSmallPot>(mm2px(Vec(8.984, 57.9)), module, CLK::SCALE_24_PARAM));
 
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 79.066666)), module, CLK::MAIN_OUTPUT));
 		addOutput(createOutputCentered<BefacoOutputPort>(mm2px(Vec(10.0, 94.941666)), module, CLK::CLOCK_8_OUTPUT));
@@ -292,11 +288,7 @@ struct CLKWidget : ModuleWidget {
 	void draw(const DrawArgs& args) override {
 
 		CLK* module = dynamic_cast<CLK*>(this->module);
-
-		std::vector<CLK::ParamId> potsToUpdate = {};
-
-		updateComponentsForTheme<CLK, CLKWidget, CLK::ParamId>(module, this, lastPanelTheme, potsToUpdate, lightSvg, darkSvg);
-
+		updateComponentsForTheme<CLK>(module, this, theme);
 		ModuleWidget::draw(args);
 	}
 };
