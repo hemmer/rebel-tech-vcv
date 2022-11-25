@@ -121,7 +121,11 @@ struct RebelTechModuleWidget : ModuleWidget {
 template <class M>
 void updateComponentsForTheme(M* module, RebelTechModuleWidget* moduleWidget, ModuleTheme& lastPanelTheme) {
 
+#ifdef USING_CARDINAL_NOT_RACK
+	ModuleTheme currentTheme = settings::darkMode ? DARK_THEME : LIGHT_THEME;
+#else
 	ModuleTheme currentTheme = module ? module->theme : loadDefaultTheme();
+#endif
 
 	const bool redrawRequired = moduleWidget && lastPanelTheme != currentTheme;
 	const bool browserView = !module; 	// nullptr for module implies we're in browser view
