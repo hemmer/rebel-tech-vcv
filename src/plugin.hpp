@@ -122,7 +122,7 @@ template <class M>
 void updateComponentsForTheme(M* module, RebelTechModuleWidget* moduleWidget, ModuleTheme& lastPanelTheme) {
 
 #ifdef USING_CARDINAL_NOT_RACK
-	ModuleTheme currentTheme = settings::darkMode ? DARK_THEME : LIGHT_THEME;
+	ModuleTheme currentTheme = settings::preferDarkPanels ? DARK_THEME : LIGHT_THEME;
 #else
 	ModuleTheme currentTheme = module ? module->theme : loadDefaultTheme();
 #endif
