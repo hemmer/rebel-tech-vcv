@@ -52,7 +52,7 @@ struct Stoicheia : Module {
 					return std::to_string(fillValue);
 				}
 				else {
-					assert(false);
+					return "";
 				}
 			}
 			else {
@@ -91,7 +91,7 @@ struct Stoicheia : Module {
 					return std::to_string(offset);
 				}
 				else {
-					assert(false);
+					return "";
 				}
 			}
 			else {
@@ -122,7 +122,7 @@ struct Stoicheia : Module {
 			switch (static_cast<ABMode>(getValue())) {
 				case INDEPENDENT: return "Independent A and B";
 				case ALTERNATING: return "Alternating A then B";
-				default: assert(false);
+				default: return "";
 			}
 		}
 	};

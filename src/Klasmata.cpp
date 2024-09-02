@@ -37,7 +37,7 @@ struct Klasmata : Module {
 					return std::to_string(offset);
 				}
 				else {
-					assert(false);
+					return "";
 				}
 			}
 			else {
@@ -68,7 +68,7 @@ struct Klasmata : Module {
 					return std::to_string(paramToFill(getValue(), length));
 				}
 				else {
-					assert(false);
+					return "";
 				}
 			}
 			else {
@@ -84,7 +84,7 @@ struct Klasmata : Module {
 					ParamQuantity::setValue(fillToParam(fill, length));
 				}
 				else {
-					assert(false);
+					// assert(false);
 				}
 			}
 		}
